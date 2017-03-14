@@ -1,0 +1,526 @@
+---
+title: "Data Quality Metrics"
+author: "Rifat"
+date: "Tuesday, October 25, 2016"
+output: pdf_document
+---
+
+In this document presented, a detials analysis on the 3city KB dataset. The analysis based on two types Events and places. Details on each type summary data presented end of the document.
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(dtplyr)
+library(reshape2)
+library(hts)
+library('knitr')
+library(reshape2)
+library(broom)
+library(plotly)
+
+ExData<-function(path){
+  
+
+  mydata=ldply(list.files(path,pattern="csv",full.names=TRUE),function(filename,dep) {
+  dum=read.csv(filename)
+  
+  dum$filename=filename
+  
+  return(dum)
+  })
+
+  
+  mydata$dep<-substring(mydata$filename, 54,63)
+
+  unique(mydata$dep)
+  
+  mydata
+   
+  head(mydata)
+  
+  freqData<-plyr::count(mydata, c("dep", "p"))
+
+  entityCount=ddply(mydata,~dep,summarise,distinct_entity=length(unique(s)))
+
+  freqData<-merge(freqData, entityCount)
+  
+  return(freqData)  
+
+}
+
+version201606lR<- read.csv(file="C:/Users/rifat/Desktop/R_milan/nice/nice_dump/events/2016-06-15-reconciled_events.csv",head=TRUE,sep=",")
+
+nrow(version201606lR)
+version201609lR<- read.csv(file="C:/Users/rifat/Desktop/R_milan/nice/nice_dump/events/2016-09-09-reconciled_events.csv",head=TRUE,sep=",")
+
+uni1<-unique(version201606lR[version201606lR$o=="http://linkedevents.org/ontology/Event",])
+uni2<-unique(version201609lR[version201609lR$o=="http://linkedevents.org/ontology/Event",])
+
+unique(uni1)
+
+different.names <- (!uni1$s %in% uni2$s)
+
+not.in.st1 <- uni1[different.names,]
+
+nrow(not.in.st1)
+
+
+
+nrow(uni1)
+
+length(unique(uni$s))
+
+
+# http://ontologydesignpatterns.org/ont/dul/DUL.owl#Place
+
+nrow(version201609lR)
+
+
+version201606lRPro<-version201606lR
+
+version201609lRPro<-version201609lR
+
+nrow(version201606lRPro)
+nrow(version201609lRPro)
+
+
+st1=version201606lRPro[version201606lRPro$p=="http://www.w3.org/2002/07/owl#sameAs",]
+st2=version201609lRPro[version201609lRPro$p=="http://www.w3.org/2002/07/owl#sameAs",]
+
+nrow(st1)
+nrow(st2)
+
+different.names <- (!st1$s %in% st2$s)
+
+not.in.st1 <- st1[different.names,]
+
+nrow(not.in.st1)
+
+head(not.in.st1)
+
+head(unique(not.in.st1$s))
+
+
+
+write.csv(not.in.st1,"C:/Users/rifat/Desktop/R_milan/nice/nice_dump/atPlaces.csv")
+
+
+
+different.names <- (!version201606lR$s %in% version201609lR$s)
+
+checkSubject<-version201606lR$s
+
+a1NotIna2 <- sqldf('SELECT * FROM version201606lRS EXCEPT SELECT * FROM version201609lRS')
+
+head(a1NotIna2)
+
+print(a1NotIna2[1:10,])
+
+
+not.in.a2 <- version201606lR[different.names,]
+ 
+# Version201604
+
+write.csv(not.in.a2,"C:/Users/rifat/Desktop/R_milan/nice/nice_dump/last_Two_comparison_results.csv")
+
+head(not.in.a2)
+# 
+nrow(not.in.a2)
+
+unique(not.in.a2)
+
+nrow(not.in.a2)
+
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+enCount<-function(path){
+  
+  mydata=ldply(list.files(path,pattern="csv",full.names=TRUE),function(filename,dep) {
+  dum=read.csv(filename)
+  
+  dum$filename=filename
+  
+  return(dum)
+  })
+
+  mydata$dep<-substring(mydata$filename, 54,63)
+
+  entityCount=ddply(mydata,~dep,summarise,distinct_entity=length(unique(s)))
+
+  return(entityCount)
+  
+}
+
+fn<-function(ver){
+  startdate <- as.Date(ver[1])
+  NumDays <- difftime(as.Date(ver),startdate ,units="days")
+  
+  return(as.numeric(NumDays))
+  
+}
+
+
+path ="C:/Users/rifat/Desktop/R_milan/nice/nice_dump/events/"
+
+events<-ExData(path)
+
+events[events$p=="http://linkedevents.org/ontology/atPlace",]
+
+
+
+eventsEntity<-enCount(path)
+
+path ="C:/Users/rifat/Desktop/R_milan/nice/nice_dump/places/"
+
+places<-ExData(path)
+
+placesEntity<-enCount(path)
+
+plotEntity<-function(entity){
+  
+en=entity[1:nrow(entity)-1,]
+
+enLm=lm(count~days,data=en)
+
+pred=data.frame(days=entity$days,count=predict(enLm,entity))
+
+summary(enLm)
+
+res=mean(abs(enLm$residuals))
+ 
+p<-ggplot(entity, aes(x = days, y = count)) + 
+   geom_point() +
+   geom_line(data=pred,color="red")+
+   geom_ribbon(data=pred,aes(ymin=count-res,ymax=count+res),alpha=0.2)
+
+return(p)
+
+}
+
+
+NormDist<-function(entity){
+#   entity=enEvents
+  
+en=entity[1:nrow(entity)-1,]
+
+enLm=lm(count~days,data=en)
+
+pred=data.frame(days=entity$days,count=predict(enLm,entity))
+
+summary(enLm)
+
+res=mean(abs(enLm$residuals))
+
+
+pr=predict(enLm,entity[nrow(entity),])
+
+lastValue=entity[nrow(entity),]$count
+
+ND=abs(pr-lastValue)/res
+
+return(ND)
+}
+
+CheckND<-function(ND){
+if(ND<1)
+  stab=1
+
+if(ND>=1)
+  stab=0
+
+return(stab)
+}
+
+
+histPer<-function(entity){
+  
+  
+entity$variation=0
+
+for( i in 2:nrow(entity)){
+  
+  temp=entity[,2]
+
+  if(temp[i]<temp[i-1])
+  entity[i,3]=1
+  
+}
+
+return(entity)
+  
+}
+
+plotPer<-function(data){
+
+p<-ggplot(data=data, aes(x=Time, y=variation , group=1)) +
+           geom_line() +
+           geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+
+return(p)
+
+}
+
+
+```
+
+# Entity Level
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+```
+
+## Persistency
+
+Events persistency:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+printDataEvents<-data.frame(Time=eventsEntity$dep,DistinctEntity=eventsEntity$distinct_entity)
+
+printDataEvents$class="Events"
+
+histPerE<-histPer(printDataEvents)
+
+
+plotPer(histPerE)
+
+p<-ggplot(data=printDataEvents, aes(x=Time, y=DistinctEntity,group=1)) +
+           geom_line() +
+           geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+
+p
+
+
+```
+
+Events Entity persistency=0
+
+
+Places persistency:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE,fig.height=4,fig.width=10}
+
+printDataPlace<-data.frame(Time=placesEntity$dep,DistinctEntity=placesEntity$distinct_entity)
+
+printDataPlace$class="Places"
+
+allEntity<-rbind(printDataEvents,printDataPlace)
+
+
+p<-ggplot(data=allEntity, aes(x=Time, y=DistinctEntity,group=class,color=class))+
+           geom_line() +
+           geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+
+p
+
+rect <- data.frame(xmin=allEntity[7,1], xmax=allEntity[8,1], ymin=-Inf, ymax=Inf)
+p + geom_rect(data=rect, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+              color="white",
+              alpha=0.2,
+              inherit.aes = FALSE)
+
+
+
+
+
+
+
+histPerP<-histPer(printDataPlace)
+
+
+
+
+plotPer(histPerP)
+
+
+p<-ggplot(data=printDataPlace, aes(x=Time, y=DistinctEntity,group=1)) +
+           geom_line() +
+           geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+
+p
+
+```
+
+Places Entity persistency=1
+
+
+## Stability
+
+Events Stability:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+enEvents=data.frame(days= fn(eventsEntity$dep), count= eventsEntity$distinct_entity)
+
+ND<-NormDist(enEvents)
+
+graph<-plotEntity(enEvents)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+Stability is 1 if ND<1 or Stability is 0 if ND>=1
+
+Stability=`r stab`
+
+Places Stability:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+enPlace=data.frame(days= fn(placesEntity$dep), count= placesEntity$distinct_entity)
+
+ND<-NormDist(enPlace)
+
+graph<-plotEntity(enPlace)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+Stability is 1 if ND<1 or Stability is 0 if ND>=1
+
+Stability=`r stab`
+
+#Predicate Level
+
+## Correctness
+
+Events Correctness:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+evDatPct= ddply(events,.(dep), here(transform), normFreq=((freq - 0)/(distinct_entity-0)) + 0)
+
+dataNormEvents=data.frame(Time=evDatPct$dep,DistinctEntity=evDatPct$distinct_entity,Predicate=evDatPct$p,freq=evDatPct$freq,evDatPctNormalizedFreq=evDatPct$normFreq)
+
+# enEventsCor$Weight= enEvents/10000
+
+eventsCor=dataNormEvents[dataNormEvents$NormalizedFreq<1,]
+
+dep=unique(dataNormEvents$Time)
+
+lastDep=dataNormEvents[dataNormEvents$Time==dep[length(dep)],]
+
+prevDep=dataNormEvents[dataNormEvents$Time==dep[length(dep)-1],]
+
+evMerge=rbind(prevDep,lastDep)
+
+th<-mean(unique(evMerge$DistinctEntity))/10000
+
+evCor=evMerge[(evMerge$Freq/10000)<th,]
+
+```
+
+```{r,echo=FALSE}
+kable(eventsCor, format = "markdown")
+
+```
+
+
+Places Correctness:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+plDatPct= ddply(places,.(dep), here(transform), normFreq=((freq - 0)/(distinct_entity-0)) + 0)
+
+dataNormPlaces=data.frame(Time=plDatPct$dep,DistinctEntity=plDatPct$distinct_entity,Predicate=plDatPct$p,freq=plDatPct$freq,NormalizedFreq=plDatPct$normFreq)
+
+# enEventsCor$Weight= enEvents/10000
+
+placesCor=dataNormPlaces[dataNormPlaces$NormalizedFreq<1,]
+
+dep=unique(dataNormPlaces$Time)
+
+lastDep=dataNormPlaces[dataNormPlaces$Time==dep[length(dep)],]
+
+prevDep=dataNormPlaces[dataNormPlaces$Time==dep[length(dep)-1],]
+
+plMerge=rbind(prevDep,lastDep)
+
+mean=mean(unique(lastDep$DistinctEntity))/100
+
+lastDep[lastDep$freq<mean,]
+
+
+
+
+```
+
+```{r,echo=FALSE}
+kable(placesCor, format = "markdown")
+
+```
+
+
+
+## Completeness
+
+Events Completeness:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+dep=unique(dataNormEvents$Time)
+
+lastDep=dataNormEvents[dataNormEvents$Time==dep[length(dep)],]
+
+prevDep=dataNormEvents[dataNormEvents$Time==dep[length(dep)-1],]
+
+evCompMerge=merge(x=lastDep,y=prevDep,by="Predicate", all = TRUE)
+
+# evCompMerge[is.na(evCompMerge)]<-0
+
+
+evComp= ddply(evCompMerge,.(Predicate), here(transform), freqDiff=(evDatPctNormalizedFreq.x-evDatPctNormalizedFreq.y))
+
+evConsistencyData=evComp[evComp$freqDiff<0,]
+
+evDataSet=data.frame(Predicate=evConsistencyData$Predicate,t20160909=evConsistencyData$evDatPctNormalizedFreq.x,t20160615=evConsistencyData$evDatPctNormalizedFreq.y,NormFreqDiff=evConsistencyData$freqDiff)
+
+
+
+```
+```{r,echo=FALSE}
+kable(evDataSet, format = "markdown")
+
+```
+
+Places Completeness:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+dep=unique(dataNormPlaces$Time)
+
+lastDep=dataNormPlaces[dataNormPlaces$Time==dep[length(dep)],]
+
+prevDep=dataNormPlaces[dataNormPlaces$Time==dep[length(dep)-1],]
+
+plCompMerge=merge(x=lastDep,y=prevDep,by="Predicate", all = TRUE)
+
+# plCompMerge[is.na(plCompMerge)]<-0
+
+plComp= ddply(plCompMerge,.(Predicate), here(transform), freqDiff=(NormalizedFreq.x-NormalizedFreq.y))
+
+plConsistencyData=plComp[plComp$freqDiff<0,]
+
+plDataSet=data.frame(Predicate=plConsistencyData$Predicate,t20160909=plConsistencyData$NormalizedFreq.x,t20160615=plConsistencyData$NormalizedFreq.y,NormFreqDiff=plConsistencyData$freqDiff)
+
+
+
+```
+```{r,echo=FALSE}
+kable(plDataSet, format = "markdown")
+
+```
