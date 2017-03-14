@@ -1,1 +1,1 @@
-# Temporal based Knowledge Base Quality (KBQ) 
+## Knowledge Base Quality (KBQ) 
