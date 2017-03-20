@@ -1,0 +1,2916 @@
+---
+title: "Predicate Analysis"
+author: "Rifat"
+date: "Monday, December 12, 2016"
+output: pdf_document
+---
+
+In this document present, Dbpedia 10 class predicate level analysis based on two quality dimensions: Correctness & Completeness. Following are the basic metrics definition of the quality dimensions.
+
+
+#Correctness (Predicate Level)
+
+Correctness of a predicate = 1 if frequency of a predicate fi > Ewi, Time Series, i=1...n
+
+Where Weighted entity Value, Ewi= Ei/10000; Ei = Distinct entity count of a class over the time series.
+
+else Correctness = 0 ,if fi < Ewi.
+
+Percentage of correctness = 1-(No. of InCorrect Property/Total no. of Property)
+
+
+Result of property values presented in a table. 1st table with incorrect property values and 2nd table with filtered property values
+
+
+#Completeness (Predicate Level)
+
+Completeness of a predicate = 1 if normalized frequency of a predicate, fi> (fi-1) ; where Time Series, i=1....n.
+
+else Completeness = 0 
+
+Percentage of completeness= 1 - (No. of Inconsistent property/Total no. of property)
+
+Where, Normalized freq = Freq of the predicate/Distinct entity Count 
+
+Result of property values presented in a table with normalized property values and difference between two version of normalized property values.
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(dtplyr)
+library(reshape2)
+library(hts)
+library('knitr')
+library(reshape2)
+
+library(plotly)
+
+### Pre process Data
+
+PropertyValue<-function(location){
+  
+setwd(location)
+  
+files = list.files(pattern="*.csv")
+# First apply read.csv, then cbind
+data = do.call(cbind, lapply(files, function(x) read.csv(x, stringsAsFactors = FALSE)))
+
+id<-data.frame(id=data[,1])
+
+noId<-data[ , -which(names(data) %in% c("id"))]
+
+All<-cbind(id,noId)
+
+WithProperty=merge(x = All, y = property_id, by = "id", all = TRUE)
+
+WithProperty<-WithProperty[,order(colnames(WithProperty),decreasing=FALSE)]
+
+require(data.table)
+DT=data.table(WithProperty)
+
+listCol <- colnames(DT)[grep("count", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+WithProperty=data.frame(DT)
+  
+return(WithProperty)
+
+}
+
+
+## Property_id
+setwd("C:/Users/rifat/Desktop/R_milan/10Classes/")
+
+property_id<- read.csv(file="property-id.csv",head=TRUE,sep=",")
+
+
+##Set defult directory
+# setwd("C:/Users/rifat/Desktop/R_milan/10Classes")
+
+## Pre process Entity Data
+
+path ="C:/Users/rifat/Desktop/R_milan/10Classes/entity"
+
+
+DataSet=ldply(list.files(path,pattern="csv",full.names=TRUE),function(filename,dep) {
+  dum=read.csv(filename)
+  
+  dum$filename=filename
+  
+  return(dum)
+})
+
+#DBpedia EN
+# version  count   Release Data(YYYY-MM-DD)
+# 3.3  12460081    2009-05-20
+# 3.4  10758945    2009-09-20
+# 3.5  18425111     2010-03-16
+# 3.6  19732649     2010-10-11
+# 3.7  24778996     2011-07-22
+# 3.8  24794952     2012-06-01
+# 3.9  27706239     2013-04-03
+# 2014  29751955   2014-05-02
+# 2015-04	38008086 2015-02-05  
+# 2015-10	40427228 2015-10-02
+# 2016-04	58283745 2016-04-01  
+
+DataSet$dep<-substring(DataSet$filename, 49,65)
+
+head(DataSet)
+
+entityDataSet<-data.frame(version=DataSet$version,date=DataSet$version,count=DataSet$count,class=DataSet$dep)
+
+
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2009-05-20")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2009-09-20")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2010-03-16")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2010-10-11")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2011-07-22")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2012-06-01")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2013-04-03")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2014-05-02")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2015-02-05")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2015-10-02")
+levels(entityDataSet$date) <- c(levels(entityDataSet$date), "2016-04-01")
+# iris$Species[iris$Species == 'virginica'] <- 'new.species'
+
+
+entityDataSet$date[entityDataSet$date=='3.3'] <- '2009-05-20'
+entityDataSet$date[entityDataSet$date=='3.4'] <- '2009-09-20'
+entityDataSet$date[entityDataSet$date=='3.5'] <- '2010-03-16'
+entityDataSet$date[entityDataSet$date=='3.6'] <- '2010-10-11'
+entityDataSet$date[entityDataSet$date=='3.7'] <- '2011-07-22'
+entityDataSet$date[entityDataSet$date=='3.8'] <- '2012-06-01'
+entityDataSet$date[entityDataSet$date=='3.9'] <- '2013-04-03'
+entityDataSet$date[entityDataSet$date=='2014'] <- '2014-05-02'
+entityDataSet$date[entityDataSet$date=='2015-04'] <- '2015-02-05'
+entityDataSet$date[entityDataSet$date=='2015-10'] <- '2015-10-02'
+entityDataSet$date[entityDataSet$date=='2016-04'] <- '2016-04-01'
+
+##Entity Plot Function
+fnplot<-function(data){
+  
+  p<-ggplot(data=data, aes(x=date, y=count , group=class,color=class)) +
+           geom_line() +
+           geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+  return(p)
+}
+
+## Calculate Days
+fn<-function(ver){
+  startdate <- as.Date(ver[1])
+  NumDays <- difftime(as.Date(ver),startdate ,units="days")
+  
+  return(as.numeric(NumDays))
+  
+}
+entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(date))
+
+unclass=unique(entityWithDays$class)
+
+# Function for normalizing property values based on entity count
+# Parm: Property dataframe and exact entity count
+
+normalize<-function(property,en){
+
+dTproperty=property
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+d=3
+t=11
+
+for(i in 1:11){
+  
+    norm= dTproperty[,d]/en[t,]$count
+    
+#  round(x, digits = 0)
+#  print(dTproperty[,d])  
+  
+    dTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+
+}
+
+# head(dTproperty)
+
+dTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+return(dTproperty)  
+  
+}
+
+identifyCorrectProperty<-function(property,en){
+
+dTproperty=property
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  prop=dTproperty[,d]
+  
+  for(j in 1:length(prop)){
+      
+       if(prop[j]>countEntity){
+         prop[j]=prop[j]
+       }
+       else{
+         prop[j]=0           
+       }
+  }
+
+  dTproperty[,d]=prop
+  d=d+1
+  t=t-1
+}
+
+
+require(data.table)
+DT=data.table(dTproperty)
+
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+Rproperty=data.frame(DT)
+
+CorrectProperty=Rproperty[Rproperty$Sum!=0,]
+
+return(CorrectProperty)
+
+}
+
+identifyInCorrectProperty<-function(property,en){
+
+NondTproperty=property
+
+d=3
+t=11
+
+
+for(i in 1:11){
+     
+  countEntity=100#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+return(IncorrectProperty)
+  
+}
+
+SubSetProperty<-function(dTproperty,en){
+  
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100 #avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+require(data.table)
+
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+  
+return(FilteredProperty)
+}
+
+```
+
+# Class:  dbo-animal 
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+##dbo-animal
+
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-animal"
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_animalWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_animalWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_animalProperty=dbo_animalWithPropertyNonZero[,-c(14)]
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_animalWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_animalProperty)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_animalProperty
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[1],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+# Class:  dbo-artist
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+##dbo-artist
+
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-artist"
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_artistWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_artistWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_artist_Property=dbo_artistWithPropertyNonZero[,-c(14)]
+
+# head(dbo_artist_Property)
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_artistWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_artist_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_artist_Property
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[2],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+
+# Class:  dbo-athlete
+
+
+```{r,echo=FALSE}
+
+##dbo-athlete
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-athlete"
+
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_athleteWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_athleteWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_athlete_Property=dbo_athleteWithPropertyNonZero[,-c(14)]
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_athleteWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_athlete_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_athlete_Property
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[3],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+# Class:  dbo-film
+
+```{r,echo=FALSE}
+##dbo-film
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-film"
+
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_filmWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_filmWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_film_Property=dbo_filmWithPropertyNonZero[,-c(14)]
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_filmWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_film_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_film_Property
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[4],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+
+
+# Class:  dbo-musicalWork
+
+```{r,echo=FALSE}
+##dbo-musicalWork
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-musicalWork"
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_musicalWorkWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_musicalWorkWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_musicalWork_Property=dbo_musicalWorkWithPropertyNonZero[,-c(14)]
+
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_musicalWorkWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_musicalWork_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_musicalWork_Property
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[5],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+```
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+
+# Class:  dbo-organisation
+
+```{r,echo=FALSE}
+
+##dbo-organisation
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-organisation"
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_organisationWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_organisationWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_organisation_Property=dbo_organisationWithPropertyNonZero[,-c(14)]
+
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_organisationWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_organisation_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_organisation_Property
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[6],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+
+
+# Class:  dbo-place
+```{r,echo=FALSE}
+
+##dbo-place
+
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-place"
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_PlaceWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_PlaceWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_place_Property=dbo_PlaceWithPropertyNonZero[,-c(14)]
+
+nrow(dbo_place_Property)
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_PlaceWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_place_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_place_Property
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[7],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+
+# Class:  dbo-species
+
+```{r,echo=FALSE}
+
+##dbo-species
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-species"
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_speciesWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_speciesWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_species_Property=dbo_speciesWithPropertyNonZero[,-c(14)]
+
+#nrow(dbo_species_Property)
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_speciesWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_species_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_species_Property
+
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[8],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+
+# Class:  dbo-work
+```{r,echo=FALSE}
+##dbo-work
+location="C:/Users/rifat/Desktop/R_milan/10Classes/dbo-work"
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_workWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_workWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_work_Property=dbo_workWithPropertyNonZero[,-c(14)]
+
+```
+
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_workWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_work_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_work_Property
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[9],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+NondTproperty=dTproperty
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+
+List of Incorrect Property Value over the time Series. 
+
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+```
+
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+
+
+# Class:  dbo-person
+```{r,echo=FALSE}
+##dbo-person
+location="C:/Users/rifat/Desktop/R_milan/10Classes/foaf-person"
+
+WithProperty=PropertyValue(location)
+
+#With Zero values 
+dbo_personWithPropertyZero=WithProperty[WithProperty$Sum==0,]
+# With NonZero Values
+dbo_personWithPropertyNonZero=WithProperty[WithProperty$Sum!=0,]
+
+dbo_person_Property=dbo_personWithPropertyNonZero[,-c(14)]
+
+
+```
+DataSet overview:
+
+No. of property with zeros on all versions = `r nrow(dbo_personWithPropertyZero)` 
+
+No. of property with Non zeros on all versions = `r nrow(dbo_person_Property)` 
+
+
+## Correctness
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#  write.csv(dbo_animalProperty, file = "C:/Users/rifat/Desktop/R_milan/10Classes/propertyNonZero/dbo-animal.csv")
+
+dTproperty<-dbo_person_Property
+
+# library(plyr)
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count43"="2016-04-01"))
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[10],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+head(dTproperty)
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/avg#$en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=100#en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+# Outlier detection
+
+# head(dTproperty)
+# 
+# clusterData <- subset( dTproperty, select = -id )
+# 
+# head(clusterData)
+# 
+# data=clusterData
+# 
+# plot(density(clusterData$'2016-04-01'))
+# 
+# 
+# 
+# irisCluster <- kmeans(clusterData[,2:5], 3, nstart = 20)
+# data=clusterData$'2016-04-01'
+# 
+# boxplot(clusterData)
+# 
+# 
+# p<-ggplot(ToothGrowth, aes(x=dose, y=len, color=dose)) +
+#   geom_boxplot()
+# p
+# 
+# dt=clusterData
+# 
+# var=clusterData[,2]
+# 
+# var_name <- eval(substitute(var),eval(dt))
+# 
+# na1 <- sum(is.na(var_name))
+# 
+# m1 <- mean(var_name, na.rm = T)
+# 
+# #      par(mfrow=c(2, 2), oma=c(0,0,3,0))
+# 
+# #With outliers
+# p <- ggplot(clusterData, aes(clusterData[,2], var_name))
+# p + geom_boxplot()
+# 
+# 
+# qplot(var_name, geom="histogram")   
+# 
+# 
+# #Detect the ouliers values
+# outlier <- boxplot.stats(var_name)$out
+# 
+# 
+# mo <- mean(outlier)
+# var_name <- ifelse(var_name %in% outlier, NA, var_name)
+# 
+# 
+# #Without outliers
+# p <- ggplot(clusterData, aes(clusterData[,2], var_name))
+# p + geom_boxplot()
+# 
+# qplot(var_name, geom="histogram")   
+# 
+# #      title("Outlier Check", outer=TRUE)
+# na2 <- sum(is.na(var_name))
+# #      cat("Outliers identified:", na2 - na1, "n")
+# #      cat("Propotion (%) of outliers:", round((na2 - na1) / sum(!is.na(var_name))*100, 1), "n")
+# #      cat("Mean of the outliers:", round(mo, 2), "n")
+# m2 <- mean(var_name, na.rm = T)
+# #      cat("Mean without removing outliers:", round(m1, 2), "n")
+# #      cat("Mean if we remove outliers:", round(m2, 2), "n")
+# 
+# dt[as.character(substitute(var))] <- invisible(var_name)
+# 
+# row.has.na <- apply(dt, 1, function(x){any(is.na(x))})
+# 
+# 
+# #With Outliers Values
+# final.filtered <- dt[row.has.na,]
+# No_of_pro_with_outlier<-nrow(final.filtered )
+# 
+# 
+# #Without Outliers Values
+# final.filtered <- dt[!row.has.na,]
+# No_of_pro_without_outlier<-nrow(final.filtered)
+
+
+# karnel density estimation
+
+# head(dTproperty)
+#  
+# Kernal_data <- subset( dTproperty, select = -id )
+# 
+# head(Kernal_data)
+# 
+# vL<-Kernal_data[Kernal_data$'2016-04-01'!=0,]$'2016-04-01'
+# vL2=Kernal_data$'2015-10-02'
+# 
+# 
+# n = sum(!is.na(vL))
+# 
+# mean.vL= mean(vL, na.rm = T)
+# var.vL = var(vL, na.rm = T)
+# sd.vL = sd(vL, na.rm = T)
+# 
+# 
+# density.vL = density(vL, na.rm = T)
+# density.vL2 = density(vL2, na.rm = T)
+# 
+# 
+# 
+# n.density1 = density.vL$n
+# n.density2 = density.vL2$n
+# 
+# bw.density1 = density.vL$bw
+# bw.density2 = density.vL2$bw
+# 
+# plot(density.vL2, main = 'Kernel Density Estimates of vL2 \n in Person Class last two version', xlab = 'freq', ylab = 'Density', ylim = c(0, max(density.vL$y, na.rm = T)), lty = 1)
+# 
+# lines(density.vL, lty = 3)
+# 
+# plot(density.vL, main = 'Kernel Density Plot and Rug Plot of Ozone \n in New York', xlab = 'Ozone (ppb)', ylab = 'Density')
+# rug(vL)
+# # dev.off()
+# 
+# set.seed(1)
+# normal.numbers = rnorm(100)
+# 
+# normal.ecdf=ecdf(vL)
+# 
+# plot(normal.ecdf, xlab = 'Quantiles of Random Standard Normal Numbers', ylab = '', main = 'Empirical Cumluative Distribution\nStandard Normal Quantiles')
+# 
+# 
+# 
+# library("dbscan")
+# 
+# ## use the numeric variables in the iris dataset
+# data("iris")
+# x <- as.matrix(iris[, 1:4])
+#  
+# ## DBSCAN
+# db <- dbscan(x, eps = .4, minPts = 4)
+# db
+# 
+# lof <- lof(x, k = 4)
+# ## larger bubbles in the visualization have a larger LOF
+# pairs(x, cex = lof)
+# 
+# ## OPTICS
+# opt <- optics(x, eps = 1, minPts = 4, eps_cl = .4)
+# opt
+# ## create a reachability plot (extracted DBSCAN clusters at eps_cl=.4 are colored)
+# plot(opt)
+# ## plot the extracted DBSCAN clustering
+# pairs(x, col = opt$cluster + 1L)
+# ## extract a hierarchical clustering using the Xi method (captures clusters of varying density)
+# opt <- optics(x, eps = 1, minPts = 4, xi = .05)
+# opt
+# plot(opt)
+# 
+# 
+# 
+# 
+# library("fpc")
+# # Compute DBSCAN using fpc package
+# 
+# db <- fpc::dbscan(Kernal_data[,2:4], eps = 0.15, MinPts = 5)
+# # Plot DBSCAN results
+# plot(db,Kernal_data[,2:4] , main = "DBSCAN", frame = FALSE)
+# 
+# 
+# head(Kernal_data)
+# 
+# dataSetConf=data.frame(property=Kernal_data$property,vL=Kernal_data$'2016-04-01',vP=Kernal_data$'2015-10-02')
+# 
+# require(data.table)
+# DT=data.table(dataSetConf)
+# 
+# listCol <- colnames(DT)[grep("v", colnames(DT))]
+# 
+# DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+# 
+# dataSetConf=data.frame(DT)
+# 
+# dataSetConf=dataSetConf[dataSetConf$Sum!=0,]
+# 
+# dataSetConf=dataSetConf[,-c(5)]
+# 
+# lmVal=lm(vL~property+vP,data=dataSetConf)
+# 
+# library(MASS) 
+# 
+# normVL=dataSetConf$vL/en[11,]$count
+# 
+# 
+# 
+#  t.test(normVL,conf.level = 0.95)
+# 
+# t.test(dataSetConf$vP,conf.level = 0.99)
+# 
+# t.test(dataSetConf$vL,dataSetConf$vP,paried=TRUE,conf.level = 0.98)
+# 
+# plot(dataSetConf$vL)
+# 
+# qplot(vL,data=dataSetConf)
+# 
+# density(dataSetConf$vL)
+# help(density)
+# 
+# 
+# st=lm(formula = vP~vL, data = dataSetConf) 
+# 
+# summary(st)
+
+
+```
+
+
+Entity Value:
+
+```{r,echo=FALSE}
+kable(entityVal, format = "markdown")
+
+```
+
+List of Incorrect Property Value over the time Series. 
+
+No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+# write.csv(FilteredProperty, file = "PersonInComplete.csv")
+
+
+```
+
+List of Filtered Property over last two version:
+
+
+
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+```
+
+## Completeness
+
+No. of filtered Property = `r nrow(TwoSeriesData)`
+
+Total=`r n`
+
+
+No. of inconsistent property = `r nrow(consistencyData)`
+
+
+
+Percentage of completeness = `r (1-(nrow(consistencyData)/n))*100` % 
+
+
+List of inconsistant property
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
