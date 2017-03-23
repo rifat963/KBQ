@@ -1,6 +1,7 @@
 Knowledge Base Data Quality (KBQ)
 ======
 
+<<<<<<< HEAD
 This contains a prototype implementation of KB quality assessment approach (KBQ) using quality measures that are computed using a temporal analysis. KBQ written in R and present in R markdown file. Quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented DBpedia growth analysis measure.
 
 
@@ -73,4 +74,5 @@ We present experiments results in simple html file as well as in pdf file. 3cixt
 #### Licence
 These scripts are free software; you can redistribute it and/or modify it under the terms of the GNU General Public License published by
 the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See the file Documentation/GPL3 in the original distribution for details. There is ABSOLUTELY NO warranty. 
+
 
