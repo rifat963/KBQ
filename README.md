@@ -63,11 +63,18 @@ So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 (v) KB growth: A graph visualizing KB growth.
 
+###Running the Experiments
+
+```{r}
+rmarkdown::run("DBpedia.Rmd")
+
+rmarkdown::run("3cixtyNice.Rmd")
+
+```
 
 ###Output
 
 We present experiments results in simple html file as well as in pdf file. 3cixty Nice experiments results present in file 3cixtyNice.html and 3cixtyNice.pdf. DBpedia experiments result present in file DBpedia.html and DBpedia.pdf.
-
 
 
 #### Licence
