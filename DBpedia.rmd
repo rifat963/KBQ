@@ -1,0 +1,1738 @@
+---
+title: "Prototype implementation on DBpedia KB"
+author: "Rifat"
+date: "Monday, December 12, 2016"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+In this implementation we presents, Dbpedia 10 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented DBpedia growth analysis measure.
+
+
+##Quality Problem Report Overview
+
+###Input
+
+In this implementation the datasets is presented in folder "~/ExperimentalData/DBpedia" where each class property count over DBpedia 11 releases present in a CSV file. Also, the entity count of 10 classes presented in "DBpedia10ClassEntityCount.csv" file. 
+
+```{r}
+location="~/ExperimentalData/DBpedia/"
+```
+
+The dataset presented in the folder is already processed and build in a intermediate data structure for the quality assessment approach.
+
+To run the rmd file only need to specify the folder location for input data.
+
+### Basic Measure Definition
+
+(i) Persistency of a Classe is 1 if, on the KB releases (i=1....n) , En > (En-1) else Persistency = 0
+
+Where En is the distnct entity of a class. 
+
+(ii) Historical Persistency of a Classe is 1 if, on the KB releases (i=1....n) , Persistency = 0 else historical persistency= 0
+
+Where En is the distnct entity of a class. 
+
+(iii) Consistency of a predicate = 1 if frequency of a predicate fi > 100, where KB releases, i=1...n
+
+else Consistency = 0 ,if fi < 100.
+
+(iv) Completeness of a predicate = 1 if normalized frequency of a predicate, fi> (fi-1) ; where Time Series, i=1....n.
+
+else Completeness = 0 
+
+(v) For KB growth we applied a Linear regression over the KB releases (i=1....n).  
+
+From the linear regression, We calculate the normalize distance. 
+
+The normalized distance(ND) = (abs(Last TimeSeries Entity Count - Predicted Value)/mean(abs(Residuals))
+
+So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+
+###Results Structure
+
+(i) Persistency: A line graph presented to visualize variation on last two DBpedia Release.
+
+(i) Historical Persistency: A table with this classes with persistency issues over the 11 Releases.
+
+(iii) Consistency: Result of property values presented in a table. 1st table with incorrect property values and 2nd table with filtered property values
+
+(iv) Completeness: Result of property values presented in a table with normalized property values and difference between two version of normalized property values.
+
+(v) KB growth: A graph visualizing KB growth.
+
+
+## Experiment Results
+
+Input: Set Entity file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+# List of library
+
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(dtplyr)
+library(reshape2)
+library(hts)
+library('knitr')
+library(reshape2)
+#Implementation of consistency and completeness measures
+#Input entity files
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv"
+entityDataSet <- read.csv(location)
+unclass=unique(entityDataSet$class)
+
+source("helper.R")
+
+entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
+
+```
+
+
+### Class: dbo:Animal[http://dbpedia.org/ontology/Animal]
+
+Input: set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-Animal.csv"
+```
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Animal.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+entityData=entityDataSet[entityDataSet$class==unclass[1],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
+TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
+dataSet<-dataSetFun(dTproperty,entityDataSet)
+consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[1],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+### Class: dbo:Artist[http://dbpedia.org/ontology/Artist]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-Artist.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Artist.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[2],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
+TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
+dataSet<-dataSetFun(dTproperty,entityDataSet)
+consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[2],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+### Class: dbo:Athlete[http://dbpedia.org/ontology/Athlete]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-athlete.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-athlete.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[3],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[3],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+#write.csv(dTproperty, file = "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-athlete.csv")
+
+NondTproperty=dTproperty
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+SubSetProp=SubSetProperty(NondTproperty,en)
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(property=TwoSeries$property,v201604=TwoSeries$X2016.04.01,v201510=TwoSeries$X2015.10.02,v201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[3],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+
+### Class: dbo:Film[http://dbpedia.org/ontology/Film]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-film.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-film.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[4],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
+TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
+dataSet<-dataSetFun(dTproperty,entityDataSet)
+consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[4],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+### Class: dbo:MusicalWork[http://dbpedia.org/ontology/MusicalWork]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-musicalWork.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-musicalWork.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[5],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
+TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
+dataSet<-dataSetFun(dTproperty,entityDataSet)
+consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[5],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+### Class: dbo:Organisation[http://dbpedia.org/ontology/Organisation]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-organisation.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-organisation.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[6],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
+TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
+dataSet<-dataSetFun(dTproperty,entityDataSet)
+consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[6],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+
+### Class: dbo:Place[http://dbpedia.org/ontology/Place]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-place.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-place.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[7],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
+TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
+dataSet<-dataSetFun(dTproperty,entityDataSet)
+consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[7],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+### Class: dbo:Species[http://dbpedia.org/ontology/Species]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-species.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-species.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[8],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
+TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
+dataSet<-dataSetFun(dTproperty,entityDataSet)
+consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[8],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+
+### Class: dbo:Work[http://dbpedia.org/ontology/Work]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/dbo-work.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-work.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[9],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
+TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
+dataSet<-dataSetFun(dTproperty,entityDataSet)
+consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[9],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
+
+
+### Class: foaf:Person[http://xmlns.com/foaf/0.1/Person]
+
+Input: Set file location such as -
+
+```{r}
+location<- "~/ExperimentalData/DBpedia/foaf-person.csv"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/foaf-person.csv"
+dTproperty <- read.csv(location,header = TRUE)
+
+dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
+                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count43"="2016-04-01"))
+
+
+entityData=entityDataSet[entityDataSet$class==unclass[9],]
+
+p<-persistencyPlot(entityData)
+
+```
+
+Entity Count for 11 Release:
+
+```{r,echo=FALSE}
+kable(entityData[,-c(1)], format = "markdown")
+```
+
+#### Persistency
+
+Persistency Measure Result: 
+
+(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+(iii) Persistency=  `r persistencyMeasure(entityData)`
+
+```{r,echo=FALSE}
+
+shadeAreaP(p,entityData)
+
+```
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+histPer<-histPerAll(entityData)
+
+```
+
+Releases with persistency values:
+
+```{r,echo=FALSE}
+kable(histPer[,-c(1)], format = "markdown")
+```
+
+Historical Persistency Measure Result: 
+
+(i) Total no. of class = `r length(unclass)`
+(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
+
+#### Consistency
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+unclass=unique(entityWithDays$class)
+
+en=entityDataSet[entityDataSet$class==unclass[10],]
+
+# dTproperty=normalize(dTproperty,en)
+
+dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+
+
+
+head(dTproperty)
+
+NondTproperty=dTproperty
+
+CorrectProperty = identifyCorrectProperty(dTproperty,en)
+
+# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+
+
+avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+
+NondTproperty=dTproperty
+
+d=3
+t=11
+
+for(i in 1:11){
+     
+  countEntity=100#avg/20000#en[t,]$count/10000
+  
+#   print(countEntity)  
+#   print(length(dTproperty[,d]))
+
+  Nonprop=NondTproperty[,d]
+  
+  for(j in 1:length(Nonprop)){
+      
+       if(Nonprop[j]>countEntity){
+         Nonprop[j]=0
+       }
+       else{
+         Nonprop[j]=Nonprop[j]        
+       }
+  }
+  print(Nonprop)  
+  NondTproperty[,d]=Nonprop
+  d=d+1
+  t=t-1
+}
+
+require(data.table)
+DT=data.table(NondTproperty)
+
+listCol <- colnames(DT)[grep("-", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+NonRproperty=data.frame(DT)
+
+IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
+
+head(IncorrectProperty)
+
+# return(IncorrectProperty)
+
+
+# nrow(NonRproperty)-nrow(IncorrectProperty)
+# 
+# nrow(Rproperty)-nrow(CorrectProperty)
+
+NdTproperty=CorrectProperty[,-c(14)]
+
+propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
+
+
+require(data.table)
+DT=data.table(propertySubSet)
+
+listCol <- colnames(DT)[grep("v", colnames(DT))]
+
+DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
+
+propertySubSet=data.frame(DT)
+
+FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
+
+FilteredProperty=FilteredProperty[,-c(5)]
+
+nrow(FilteredProperty)
+
+# normalize(NdTproperty,en)
+d=3
+t=11
+for(i in 1:11){
+
+    norm= NdTproperty[,d]/avg#$en[t,]$count
+
+    NdTproperty[,d]=norm
+    d=d+1
+#     print(norm)
+    t=t-1
+}
+
+NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
+
+# print(dTproperty)
+# head(dTproperty)
+
+# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
+
+consistencyData=NdTproperty[NdTproperty$diffLast<0,]
+
+nrow(dTproperty)
+
+nrow(consistencyData)
+
+dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
+
+entityVal=en
+
+entityVal$WeightValue=100#en$count/10000
+
+CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
+
+TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
+
+TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
+
+
+InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
+
+
+```
+
+(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+kable(FilteredProperty, format = "markdown")
+
+#head(FilteredProperty)
+
+```
+
+(i) List of Consistent Property over last two version:
+
+```{r,echo=FALSE}
+kable(TwoSeriesData, format = "markdown")
+
+n=nrow(TwoSeriesData)+nrow(FilteredProperty)
+
+
+```
+
+#### Completeness
+
+
+(i) Total no. of property =`r n`
+
+(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
+
+(iii) No. of incomplete property = `r nrow(consistencyData)`
+
+List of inincomplete property:
+
+```{r,echo=FALSE}
+kable(dataSet, format = "markdown")
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+entity<-entityWithDays[entityWithDays$class==unclass[10],]
+
+ND<-NormDist(entity)
+
+graph<-plotEntity(entity)
+
+graph
+
+stab<-CheckND(ND)
+
+```
+The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+
+KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+
+KB growth=`r stab`
+
