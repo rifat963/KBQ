@@ -66,7 +66,7 @@ The dataset presented in the folder is already processed and build in as interme
 
 ```{r}
 
-install.packages(c("ggplot2", "dplyr", "plyr", "dtplyr", "reshape2","knitr","hts"))
+install.packages(c("ggplot2", "dplyr", "plyr", "dtplyr", "reshape2","knitr","hts","rmarkdown"))
 
 ```
 
