@@ -122,20 +122,8 @@ $(document).ready(function () {
 <div id="knowledge-base-data-quality-kbq" class="section level1">
 <h1>Knowledge Base Data Quality (KBQ)</h1>
 <p>This contains a prototype implementation of KB quality assessment approach (KBQ) using quality measures that are computed using a temporal analysis. KBQ written in R and present in R markdown file. Quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented DBpedia growth analysis measure.</p>
-<div id="quality-problem-report-overview" class="section level2">
-<h2>Quality Problem Report Overview</h2>
-<div id="input" class="section level3">
-<h3>Input</h3>
-<p>In this implementation experiments dataset presented in folder “~/ExperimentalData/”. We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.<br />
-For 3cixty-</p>
-<pre class="{r}"><code>location=&quot;~/ExperimentalData/3cixtyNice/&quot;</code></pre>
-<p>For DBpedia-</p>
-<pre class="{r}"><code>location=&quot;~/ExperimentalData/DBpedia/&quot;</code></pre>
-<p>The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach.</p>
-<p>To run the R code rmd file only need to specify the folder location for input data.</p>
-</div>
-<div id="basic-measure-definition" class="section level3">
-<h3>Basic Measure Definition</h3>
+<div id="basic-measure-definition" class="section level2">
+<h2>Basic Measure Definition</h2>
 <ol style="list-style-type: lower-roman">
 <li>Persistency of a Classe is 1 if, on the KB releases (i=1….n) , En &gt; (En-1) else Persistency = 0</li>
 </ol>
@@ -159,8 +147,8 @@ For 3cixty-</p>
 <p>The normalized distance(ND) = (abs(Last TimeSeries Entity Count - Predicted Value)/mean(abs(Residuals))</p>
 <p>So, KB growth is 1 if ND&lt;1 or KB growth is 0 if ND&gt;=1</p>
 </div>
-<div id="results-structure" class="section level3">
-<h3>Results Structure</h3>
+<div id="results-structure" class="section level2">
+<h2>Results Structure</h2>
 <ol style="list-style-type: lower-roman">
 <li><p>Persistency: A line graph presented to visualize variation on last two Release of KB.</p></li>
 <li><p>Historical Persistency: A table with this classes with persistency issues over the Releases.</p></li>
@@ -168,6 +156,33 @@ For 3cixty-</p>
 <li><p>Completeness: Result of property values presented in a table with normalized property values and difference between two version of normalized property values.</p></li>
 <li><p>KB growth: A graph visualizing KB growth.</p></li>
 </ol>
+</div>
+<div id="experimental-setup" class="section level2">
+<h2>Experimental Setup</h2>
+</div>
+<div id="input" class="section level2">
+<h2>Input</h2>
+<p>In this implementation experiments dataset presented in folder “~/ExperimentalData/”. We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.<br />
+For 3cixty-</p>
+<pre class="{r}"><code>location=&quot;~/ExperimentalData/3cixtyNice/&quot;</code></pre>
+<p>For DBpedia-</p>
+<pre class="{r}"><code>location=&quot;~/ExperimentalData/DBpedia/&quot;</code></pre>
+</div>
+<div id="running-the-experiments" class="section level2">
+<h2>Running the Experiments</h2>
+<p>The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach.</p>
+<div id="requirements" class="section level3">
+<h3>Requirements</h3>
+<pre class="{r}"><code>
+install.packages(c(&quot;ggplot2&quot;, &quot;dplyr&quot;, &quot;plyr&quot;, &quot;dtplyr&quot;, &quot;reshape2&quot;,&quot;knitr&quot;,&quot;hts&quot;))
+</code></pre>
+</div>
+<div id="running-the-prototype" class="section level3">
+<h3>Running the prototype</h3>
+<pre class="{r}"><code>rmarkdown::run(&quot;DBpedia.Rmd&quot;)
+
+rmarkdown::run(&quot;3cixtyNice.Rmd&quot;)
+</code></pre>
 </div>
 <div id="output" class="section level3">
 <h3>Output</h3>

@@ -3,28 +3,7 @@ Knowledge Base Data Quality (KBQ)
 
 This contains a prototype implementation of KB quality assessment approach (KBQ) using quality measures that are computed using a temporal analysis. KBQ written in R and present in R markdown file. Quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented DBpedia growth analysis measure.
 
-
-##Quality Problem Report Overview
-
-###Input
-
-In this implementation experiments dataset presented in folder "~/ExperimentalData/". We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.  
-For 3cixty-
-
-```{r}
-location="~/ExperimentalData/3cixtyNice/"
-```
-For DBpedia-
-
-```{r}
-location="~/ExperimentalData/DBpedia/"
-```
-
-The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach.
-
-To run the R code rmd file only need to specify the folder location for input data.
-
-### Basic Measure Definition
+## Basic Measure Definition
 
 (i) Persistency of a Classe is 1 if, on the KB releases (i=1....n) , En > (En-1) else Persistency = 0
 
@@ -50,8 +29,7 @@ The normalized distance(ND) = (abs(Last TimeSeries Entity Count - Predicted Valu
 
 So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
-
-###Results Structure
+## Results Structure
 
 (i) Persistency: A line graph presented to visualize variation on last two Release of KB.
 
@@ -63,7 +41,37 @@ So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 (v) KB growth: A graph visualizing KB growth.
 
-###Running the Experiments
+
+## Experimental Setup
+
+## Input
+
+In this implementation experiments dataset presented in folder "~/ExperimentalData/". We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.  
+For 3cixty-
+
+```{r}
+location="~/ExperimentalData/3cixtyNice/"
+```
+For DBpedia-
+
+```{r}
+location="~/ExperimentalData/DBpedia/"
+```
+
+## Running the Experiments
+
+The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach. 
+
+### Requirements
+
+```{r}
+
+install.packages(c("ggplot2", "dplyr", "plyr", "dtplyr", "reshape2","knitr","hts"))
+
+```
+
+
+### Running the prototype
 
 ```{r}
 rmarkdown::run("DBpedia.Rmd")
@@ -72,7 +80,7 @@ rmarkdown::run("3cixtyNice.Rmd")
 
 ```
 
-###Output
+### Output
 
 We present experiments results in simple html file as well as in pdf file. 3cixty Nice experiments results present in file 3cixtyNice.html and 3cixtyNice.pdf. DBpedia experiments result present in file DBpedia.html and DBpedia.pdf.
 
