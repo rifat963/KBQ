@@ -147,8 +147,9 @@ $(document).ready(function () {
 <p>The normalized distance(ND) = (abs(Last TimeSeries Entity Count - Predicted Value)/mean(abs(Residuals))</p>
 <p>So, KB growth is 1 if ND&lt;1 or KB growth is 0 if ND&gt;=1</p>
 </div>
-<div id="results-structure" class="section level2">
-<h2>Results Structure</h2>
+<div id="output-structure" class="section level2">
+<h2>Output Structure</h2>
+<p>Output of the experiment divided based on selected classes. For instance 3cixty Nice KB we selected lode:Event and dul:Place class. We divided the experiments out results based on each class and quality measure results.</p>
 <ol style="list-style-type: lower-roman">
 <li><p>Persistency: A line graph presented to visualize variation on last two Release of KB.</p></li>
 <li><p>Historical Persistency: A table with this classes with persistency issues over the Releases.</p></li>
@@ -162,27 +163,31 @@ $(document).ready(function () {
 </div>
 <div id="input" class="section level2">
 <h2>Input</h2>
-<p>In this implementation experiments dataset presented in folder “~/ExperimentalData/”. We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.<br />
+<p>In this implementation dataset presented in folder “~/ExperimentalData/”. We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.<br />
 For 3cixty-</p>
 <pre class="{r}"><code>location=&quot;~/ExperimentalData/3cixtyNice/&quot;</code></pre>
 <p>For DBpedia-</p>
 <pre class="{r}"><code>location=&quot;~/ExperimentalData/DBpedia/&quot;</code></pre>
+<p>The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach.</p>
 </div>
 <div id="running-the-experiments" class="section level2">
 <h2>Running the Experiments</h2>
-<p>The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach.</p>
+<p>To running the experiments in the .rmd file you need to specify the Experimental Data folder location.</p>
 <div id="requirements" class="section level3">
 <h3>Requirements</h3>
+<p>Following R packages needed to run the prototype.</p>
 <pre class="{r}"><code>
-install.packages(c(&quot;ggplot2&quot;, &quot;dplyr&quot;, &quot;plyr&quot;, &quot;dtplyr&quot;, &quot;reshape2&quot;,&quot;knitr&quot;,&quot;hts&quot;))
+install.packages(c(&quot;ggplot2&quot;, &quot;dplyr&quot;, &quot;plyr&quot;, &quot;dtplyr&quot;, &quot;reshape2&quot;,&quot;knitr&quot;,&quot;hts&quot;,&quot;rmarkdown&quot;))
 </code></pre>
 </div>
 <div id="running-the-prototype" class="section level3">
 <h3>Running the prototype</h3>
+<p>Prototype can be run simply by following command in R:</p>
 <pre class="{r}"><code>rmarkdown::run(&quot;DBpedia.Rmd&quot;)
 
 rmarkdown::run(&quot;3cixtyNice.Rmd&quot;)
 </code></pre>
+<p>It will generate the experiments results in html and pdf formats.</p>
 </div>
 <div id="output" class="section level3">
 <h3>Output</h3>

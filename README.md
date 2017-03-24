@@ -29,7 +29,9 @@ The normalized distance(ND) = (abs(Last TimeSeries Entity Count - Predicted Valu
 
 So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
-## Results Structure
+## Output Structure
+
+Output of the experiment divided based on selected classes. For instance 3cixty Nice KB we selected lode:Event and dul:Place class. We divided the experiments out results based on each class and quality measure results. 
 
 (i) Persistency: A line graph presented to visualize variation on last two Release of KB.
 
@@ -46,7 +48,7 @@ So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 ## Input
 
-In this implementation experiments dataset presented in folder "~/ExperimentalData/". We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.  
+In this implementation dataset presented in folder "~/ExperimentalData/". We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.  
 For 3cixty-
 
 ```{r}
@@ -58,20 +60,23 @@ For DBpedia-
 location="~/ExperimentalData/DBpedia/"
 ```
 
+The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach. 
+
 ## Running the Experiments
 
-The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach. 
+To running the experiments in the .rmd file you need to specify the Experimental Data folder location. 
 
 ### Requirements
 
+Following R packages needed to run the prototype.
+
 ```{r}
-
 install.packages(c("ggplot2", "dplyr", "plyr", "dtplyr", "reshape2","knitr","hts","rmarkdown"))
-
 ```
 
-
 ### Running the prototype
+
+Prototype can be run simply by following command in R:
 
 ```{r}
 rmarkdown::run("DBpedia.Rmd")
@@ -80,9 +85,11 @@ rmarkdown::run("3cixtyNice.Rmd")
 
 ```
 
+It will generate the experiment results in html and pdf format.
+
 ### Output
 
-We present experiments results in simple html file as well as in pdf file. 3cixty Nice experiments results present in file 3cixtyNice.html and 3cixtyNice.pdf. DBpedia experiments result present in file DBpedia.html and DBpedia.pdf.
+We present experiments results in simple html file as well as in pdf file. 3cixty Nice experiments results present in file 3cixtyNice.html and 3cixtyNice.pdf. DBpedia experiments result present in file DBpedia.html and DBpedia.pdf. 
 
 
 #### Licence
