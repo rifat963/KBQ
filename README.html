@@ -161,24 +161,13 @@ $(document).ready(function () {
 <div id="experimental-setup" class="section level2">
 <h2>Experimental Setup</h2>
 </div>
-<div id="input" class="section level2">
-<h2>Input</h2>
-<p>In this implementation dataset presented in folder “~/ExperimentalData/”. We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.<br />
-For 3cixty-</p>
-<pre class="{r}"><code>location=&quot;~/ExperimentalData/3cixtyNice/&quot;</code></pre>
-<p>For DBpedia-</p>
-<pre class="{r}"><code>location=&quot;~/ExperimentalData/DBpedia/&quot;</code></pre>
-<p>The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach.</p>
-</div>
 <div id="running-the-experiments" class="section level2">
 <h2>Running the Experiments</h2>
 <p>To running the experiments in the .rmd file you need to specify the Experimental Data folder location.</p>
 <div id="requirements" class="section level3">
 <h3>Requirements</h3>
 <p>Following R packages needed to run the prototype.</p>
-<pre class="{r}"><code>
-install.packages(c(&quot;ggplot2&quot;, &quot;dplyr&quot;, &quot;plyr&quot;, &quot;dtplyr&quot;, &quot;reshape2&quot;,&quot;knitr&quot;,&quot;hts&quot;,&quot;rmarkdown&quot;))
-</code></pre>
+<pre class="{r}"><code>install.packages(c(&quot;ggplot2&quot;, &quot;dplyr&quot;, &quot;plyr&quot;, &quot;dtplyr&quot;, &quot;reshape2&quot;,&quot;knitr&quot;,&quot;hts&quot;,&quot;rmarkdown&quot;))</code></pre>
 </div>
 <div id="running-the-prototype" class="section level3">
 <h3>Running the prototype</h3>
@@ -187,8 +176,17 @@ install.packages(c(&quot;ggplot2&quot;, &quot;dplyr&quot;, &quot;plyr&quot;, &qu
 
 rmarkdown::run(&quot;3cixtyNice.Rmd&quot;)
 </code></pre>
-<p>It will generate the experiments results in html and pdf formats.</p>
 </div>
+</div>
+<div id="input" class="section level2">
+<h2>Input</h2>
+<p>In this implementation dataset presented in folder “~/ExperimentalData/”. We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.<br />
+For 3cixty-</p>
+<pre class="{r}"><code>location=&quot;~/ExperimentalData/3cixtyNice/&quot;</code></pre>
+<p>For DBpedia-</p>
+<pre class="{r}"><code>location=&quot;~/ExperimentalData/DBpedia/&quot;</code></pre>
+<p>The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach.</p>
+<p>It will generate the experiment results in html and pdf format.</p>
 <div id="output" class="section level3">
 <h3>Output</h3>
 <p>We present experiments results in simple html file as well as in pdf file. 3cixty Nice experiments results present in file 3cixtyNice.html and 3cixtyNice.pdf. DBpedia experiments result present in file DBpedia.html and DBpedia.pdf.</p>

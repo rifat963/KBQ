@@ -69,7 +69,7 @@ So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 Input: Set Entity file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
@@ -86,8 +86,13 @@ library('knitr')
 library(reshape2)
 #Implementation of consistency and completeness measures
 #Input entity files
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv"
-entityDataSet <- read.csv(location)
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"DBpedia10ClassEntityCount.csv",sep = "")
+
+#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv"
+entityDataSet <- read.csv(loc)
 unclass=unique(entityDataSet$class)
 
 source("helper.R")
@@ -102,14 +107,18 @@ entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
 Input: set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-Animal.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Animal.csv"
-dTproperty <- read.csv(location,header = TRUE)
+#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Animal.csv"
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-Animal.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -237,13 +246,19 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-Artist.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Artist.csv"
-dTproperty <- read.csv(location,header = TRUE)
+#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Artist.csv"
+#dTproperty <- read.csv(location,header = TRUE)
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-Artist.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
+
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -374,13 +389,19 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-athlete.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-athlete.csv"
-dTproperty <- read.csv(location,header = TRUE)
+#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-athlete.csv"
+#dTproperty <- read.csv(location,header = TRUE)
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-athlete.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
+
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -651,13 +672,19 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-film.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-film.csv"
-dTproperty <- read.csv(location,header = TRUE)
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-film.csv"
+# dTproperty <- read.csv(location,header = TRUE)
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-film.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
+
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -788,13 +815,19 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-musicalWork.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-musicalWork.csv"
-dTproperty <- read.csv(location,header = TRUE)
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-musicalWork.csv"
+# dTproperty <- read.csv(location,header = TRUE)
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-musicalWork.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
+
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -925,13 +958,19 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-organisation.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-organisation.csv"
-dTproperty <- read.csv(location,header = TRUE)
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-organisation.csv"
+# dTproperty <- read.csv(location,header = TRUE)
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-organisation.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
+
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -953,9 +992,9 @@ kable(entityData[,-c(1)], format = "markdown")
 
 Persistency Measure Result: 
 
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
+ `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+ `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+ Persistency=  `r persistencyMeasure(entityData)`
 
 ```{r,echo=FALSE}
 
@@ -979,9 +1018,9 @@ kable(histPer[,-c(1)], format = "markdown")
 
 Historical Persistency Measure Result: 
 
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+Total no. of class = `r length(unclass)`
+No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
+HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 
 #### Consistency
@@ -1063,13 +1102,17 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-place.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-place.csv"
-dTproperty <- read.csv(location,header = TRUE)
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-place.csv"
+# dTproperty <- read.csv(location,header = TRUE)
+
+loc<-paste(getwd(),location,sep = "")
+loc<-paste(loc,"dbo-place.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -1200,13 +1243,18 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-species.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+# 
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-species.csv"
+# dTproperty <- read.csv(location,header = TRUE)
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-species.csv"
-dTproperty <- read.csv(location,header = TRUE)
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-species.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -1338,13 +1386,19 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/dbo-work.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-work.csv"
-dTproperty <- read.csv(location,header = TRUE)
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-work.csv"
+# dTproperty <- read.csv(location,header = TRUE)
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-work.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
+
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
@@ -1477,13 +1531,18 @@ KB growth=`r stab`
 Input: Set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/foaf-person.csv"
+location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/foaf-person.csv"
-dTproperty <- read.csv(location,header = TRUE)
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/foaf-person.csv"
+# dTproperty <- read.csv(location,header = TRUE)
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"foaf-person.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
 
 dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count43"="2016-04-01"))

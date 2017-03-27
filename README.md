@@ -46,22 +46,6 @@ Output of the experiment divided based on selected classes. For instance 3cixty 
 
 ## Experimental Setup
 
-## Input
-
-In this implementation dataset presented in folder "~/ExperimentalData/". We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.  
-For 3cixty-
-
-```{r}
-location="~/ExperimentalData/3cixtyNice/"
-```
-For DBpedia-
-
-```{r}
-location="~/ExperimentalData/DBpedia/"
-```
-
-The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach. 
-
 ## Running the Experiments
 
 To running the experiments in the .rmd file you need to specify the Experimental Data folder location. 
@@ -84,6 +68,23 @@ rmarkdown::run("DBpedia.Rmd")
 rmarkdown::run("3cixtyNice.Rmd")
 
 ```
+
+## Input
+
+In this implementation dataset presented in folder "~/ExperimentalData/". We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.  
+For 3cixty-
+
+```{r}
+location="~/ExperimentalData/3cixtyNice/"
+```
+For DBpedia-
+
+```{r}
+location="~/ExperimentalData/DBpedia/"
+```
+
+The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach. 
+
 
 It will generate the experiment results in html and pdf format.
 

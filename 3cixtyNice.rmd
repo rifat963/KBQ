@@ -3,8 +3,8 @@ title: "Prototype implementation on 3cixty Nice KB"
 author: "Rifat"
 date: "Tuesday, October 25, 2016"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 In this implementation we presents, 3cixty Nice 2 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented 3cixty Nice 2 class growth analysis measure.
 
@@ -67,7 +67,7 @@ So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 Input: Set Entity file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv"
+location<- "/ExperimentalData/3cixtyNice/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
@@ -80,11 +80,17 @@ library(reshape2)
 library(hts)
 library('knitr')
 library(reshape2)
-library(plotly)
+
 
 #Input entity files
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/3cixtyNice/3cixty2ClassEntityCount.csv"
-entityDataSet <- read.csv(location)
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ/ExperimentalData/3cixtyNice/"
+# 
+
+loc<-paste(getwd(),location,sep = "")
+loc<-paste(loc,"3cixty2ClassEntityCount.csv",sep = "")
+entityDataSet <- read.csv(loc)
+
+
 unclass=unique(entityDataSet$class)
 #Implementation of consistency and completeness measures
 source("helper.R")
@@ -98,15 +104,19 @@ entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
 Input: set file location such as -
 
 ```{r}
-location<- "~/ExperimentalData/3cixtyNice/lode-Event.csv"
+location<- "/ExperimentalData/3cixtyNice/"
 ```
 
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/3cixtyNice/lode-Event.csv"
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/3cixtyNice/lode-Event.csv"
+# 
+# dTproperty <- read.csv(location,header = TRUE)
 
-dTproperty <- read.csv(location,header = TRUE)
+loc<-paste(getwd(),location,sep = "")
+loc<-paste(loc,"lode-Event.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
 
 entityData=entityDataSet[entityDataSet$class==unclass[1],]
 
@@ -118,19 +128,22 @@ Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData, format = "markdown")
+
+shadeAreaPC(p,entityData)
+
 ```
 
 #### Persistency
 
 Persistency Measure Result: 
 
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasureC(entityData)`
+ `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
+`r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
+ Persistency=  `r persistencyMeasureC(entityData)`
 
 ```{r,echo=FALSE}
 
-shadeAreaPC(p,entityData)
+
 
 ```
 
@@ -243,9 +256,13 @@ KB growth=`r stab`
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/3cixtyNice/dul-Place.csv"
+# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/3cixtyNice/"
+# 
+# dTproperty <- read.csv(location,header = TRUE)
 
-dTproperty <- read.csv(location,header = TRUE)
+loc<-paste(getwd(),location,sep = "")
+loc<-paste(loc,"dul-Place.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
 
 entityData=entityDataSet[entityDataSet$class==unclass[2],]
 
