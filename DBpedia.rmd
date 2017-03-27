@@ -9,6 +9,18 @@ output:
 
 In this implementation we presents, Dbpedia 10 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented DBpedia growth analysis measure.
 
+(i) [Class dbo Animal](#class-dbo-animal)
+(ii) [Class dbo Artist](#class-dbo-artist)
+(iii) [Class dbo Athlete](#class-dbo-athlete)
+(iv) [Class dbo Film](#class-dbo-film)
+(v) [Class dbo MusicalWork](#class-dbo-musicalwork)
+(vi) [Class dbo Organisation](#class-dbo-organisation)
+(vii) [Class dbo Place](#class-dbo-place)
+(viii) [Class dbo Species](#class-dbo-species)
+(ix) [Class dbo Work](#class-dbo-work)
+(X) [Class foaf Person](#class-foaf-person)
+
+
 
 ##Quality Problem Report Overview
 
@@ -23,32 +35,6 @@ location="~/ExperimentalData/DBpedia/"
 The dataset presented in the folder is already processed and build in a intermediate data structure for the quality assessment approach.
 
 To run the rmd file only need to specify the folder location for input data.
-
-### Basic Measure Definition
-
-(i) Persistency of a Classe is 1 if, on the KB releases (i=1....n) , En > (En-1) else Persistency = 0
-
-Where En is the distnct entity of a class. 
-
-(ii) Historical Persistency of a Classe is 1 if, on the KB releases (i=1....n) , Persistency = 0 else historical persistency= 0
-
-Where En is the distnct entity of a class. 
-
-(iii) Consistency of a predicate = 1 if frequency of a predicate fi > 100, where KB releases, i=1...n
-
-else Consistency = 0 ,if fi < 100.
-
-(iv) Completeness of a predicate = 1 if normalized frequency of a predicate, fi> (fi-1) ; where Time Series, i=1....n.
-
-else Completeness = 0 
-
-(v) For KB growth we applied a Linear regression over the KB releases (i=1....n).  
-
-From the linear regression, We calculate the normalize distance. 
-
-The normalized distance(ND) = (abs(Last TimeSeries Entity Count - Predicted Value)/mean(abs(Residuals))
-
-So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 
 ###Results Structure
@@ -102,7 +88,9 @@ entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
 ```
 
 
-### Class: dbo:Animal[http://dbpedia.org/ontology/Animal]
+### Class dbo Animal
+
+[http://dbpedia.org/ontology/Animal]
 
 Input: set file location such as -
 
@@ -241,7 +229,9 @@ KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
-### Class: dbo:Artist[http://dbpedia.org/ontology/Artist]
+### Class dbo Artist
+
+[http://dbpedia.org/ontology/Artist]
 
 Input: Set file location such as -
 
@@ -384,7 +374,9 @@ KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
-### Class: dbo:Athlete[http://dbpedia.org/ontology/Athlete]
+### Class dbo Athlete
+
+[http://dbpedia.org/ontology/Athlete]
 
 Input: Set file location such as -
 
@@ -667,7 +659,9 @@ KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 KB growth=`r stab`
 
 
-### Class: dbo:Film[http://dbpedia.org/ontology/Film]
+### Class dbo Film
+
+[http://dbpedia.org/ontology/Film]
 
 Input: Set file location such as -
 
@@ -810,7 +804,9 @@ KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
-### Class: dbo:MusicalWork[http://dbpedia.org/ontology/MusicalWork]
+### Class dbo MusicalWork
+
+[http://dbpedia.org/ontology/MusicalWork]
 
 Input: Set file location such as -
 
@@ -953,7 +949,9 @@ KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
-### Class: dbo:Organisation[http://dbpedia.org/ontology/Organisation]
+### Class dbo Organisation
+
+[http://dbpedia.org/ontology/Organisation]
 
 Input: Set file location such as -
 
@@ -1097,7 +1095,9 @@ KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 KB growth=`r stab`
 
 
-### Class: dbo:Place[http://dbpedia.org/ontology/Place]
+### Class dbo Place
+
+[http://dbpedia.org/ontology/Place]
 
 Input: Set file location such as -
 
@@ -1238,7 +1238,9 @@ KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
-### Class: dbo:Species[http://dbpedia.org/ontology/Species]
+### Class dbo Species
+
+[http://dbpedia.org/ontology/Species]
 
 Input: Set file location such as -
 
@@ -1381,7 +1383,9 @@ KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 KB growth=`r stab`
 
 
-### Class: dbo:Work[http://dbpedia.org/ontology/Work]
+### Class dbo Work
+
+[http://dbpedia.org/ontology/Work]
 
 Input: Set file location such as -
 
@@ -1526,7 +1530,9 @@ KB growth=`r stab`
 
 
 
-### Class: foaf:Person[http://xmlns.com/foaf/0.1/Person]
+### Class foaf Person
+
+[http://xmlns.com/foaf/0.1/Person]
 
 Input: Set file location such as -
 

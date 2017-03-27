@@ -3,10 +3,13 @@ title: "Prototype implementation on 3cixty Nice KB"
 author: "Rifat"
 date: "Tuesday, October 25, 2016"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
-In this implementation we presents, 3cixty Nice 2 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented 3cixty Nice 2 class growth analysis measure.
+In this implementation we presents, 3cixty Nice 2 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented 3cixty Nice 2 class growth analysis measure:
+
+(i) [Class lode Event](#class-lode-event)
+(ii) [Class dul Place](#class-dul-place)
 
 
 ##Quality Problem Report Overview
@@ -22,33 +25,6 @@ location="~/ExperimentalData/3cixtyNice/"
 The dataset presented in the folder is already processed and build in a intermediate data structure for the quality assessment approach.
 
 To run the rmd file only need to specify the folder location for input data.
-
-### Basic Measure Definition
-
-(i) Persistency of a Classe is 1 if, on the KB releases (i=1....n) , En > (En-1) else Persistency = 0
-
-Where En is the distnct entity of a class. 
-
-(ii) Historical Persistency of a Classe is 1 if, on the KB releases (i=1....n) , Persistency = 0 else historical persistency= 0
-
-Where En is the distnct entity of a class. 
-
-(iii) Consistency of a predicate = 1 if frequency of a predicate fi > 100, where KB releases, i=1...n
-
-else Consistency = 0 ,if fi < 100.
-
-(iv) Completeness of a predicate = 1 if normalized frequency of a predicate, fi> (fi-1) ; where Time Series, i=1....n.
-
-else Completeness = 0 
-
-(v) For KB growth we applied a Linear regression over the KB releases (i=1....n).  
-
-From the linear regression, We calculate the normalize distance. 
-
-The normalized distance(ND) = (abs(Last TimeSeries Entity Count - Predicted Value)/mean(abs(Residuals))
-
-So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
-
 
 ###Results Structure
 
@@ -99,7 +75,11 @@ entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
 
 ```
 
-### Class: lode:Event[http://linkedevents.org/ontology/Event]
+### Class lode Event
+
+[http://linkedevents.org/ontology/Event]
+
+
 
 Input: set file location such as -
 
@@ -252,7 +232,9 @@ KB growth=`r stab`
 
 
 
-### Class: dul:Place[http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Place]
+### Class dul Place
+
+[http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Place]
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
