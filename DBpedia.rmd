@@ -1642,6 +1642,7 @@ graph
 stab<-CheckND(ND)
 
 ```
+
 The normalized distance(ND)= `r ND`
 
 KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1

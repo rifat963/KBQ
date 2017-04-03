@@ -191,7 +191,7 @@ ConsistencyData=Comp[Comp$freqDiff<0,]
 
 ConsistencyData<-ConsistencyData[complete.cases(ConsistencyData),]
 
-DataSet=data.frame(Property=ConsistencyData$Property,Release20160909=ConsistencyData$NormalizedFreq.x,Release20160615=ConsistencyData$NormalizedFreq.y,NormFreqDiff=ConsistencyData$freqDiff)
+DataSet=data.frame(Property=ConsistencyData$Property,'2016-09-09'=ConsistencyData$NormalizedFreq.x,'2016-06-15'=ConsistencyData$NormalizedFreq.y,NormFreqDiff=ConsistencyData$freqDiff)
 
 DataSet<-DataSet[complete.cases(DataSet),]
 
