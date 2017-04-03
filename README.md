@@ -6,28 +6,23 @@ This contains a prototype implementation of KB quality assessment approach (KBQ)
 ## Basic Measure Definition
 
 (i) Persistency of a Classe is 1 if, on the KB releases (i=1....n) , En > (En-1) else Persistency = 0
-
 Where En is the distnct entity of a class. 
 
 (ii) Historical Persistency of a Classe is 1 if, on the KB releases (i=1....n) , Persistency = 0 else historical persistency= 0
-
 Where En is the distnct entity of a class. 
 
 (iii) Consistency of a predicate = 1 if frequency of a predicate fi > 100, where KB releases, i=1...n
-
 else Consistency = 0 ,if fi < 100.
 
 (iv) Completeness of a predicate = 1 if normalized frequency of a predicate, fi> (fi-1) ; where Time Series, i=1....n.
-
 else Completeness = 0 
 
 (v) For KB growth we applied a Linear regression over the KB releases (i=1....n).  
-
 From the linear regression, We calculate the normalize distance. 
 
 The normalized distance(ND) = (abs(Last TimeSeries Entity Count - Predicted Value)/mean(abs(Residuals))
 
-So, KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+So, KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 ## Output Structure
 
@@ -43,12 +38,9 @@ Output of the experiment divided based on selected classes. For instance 3cixty 
 
 (v) KB growth: A graph visualizing KB growth.
 
-
 ## Experimental Setup
 
-## Running the Experiments
-
-To running the experiments in the .rmd file you need to specify the Experimental Data folder location. 
+We implemented our prototype using [R](https://www.r-project.org/). Tool used in this project: [R studio](https://www.rstudio.com/). 
 
 ### Requirements
 
@@ -56,6 +48,25 @@ Following R packages needed to run the prototype.
 
 ```{r}
 install.packages(c("ggplot2", "dplyr", "plyr", "dtplyr", "reshape2","knitr","hts","rmarkdown"))
+```
+
+## Running the Experiments
+
+We used [R markdown](http://rmarkdown.rstudio.com/) to design and develop our prototype. For each KB we created one R markdown file. 
+However the input in the R markdown file already preprocessed and presented in the folder "/ExperimentalData/".
+
+## Input
+
+We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.  
+For 3cixty-
+
+```{r}
+location="~/ExperimentalData/3cixtyNice/"
+```
+For DBpedia-
+
+```{r}
+location="~/ExperimentalData/DBpedia/"
 ```
 
 ### Running the prototype
@@ -68,25 +79,6 @@ rmarkdown::run("DBpedia.Rmd")
 rmarkdown::run("3cixtyNice.Rmd")
 
 ```
-
-## Input
-
-In this implementation dataset presented in folder "~/ExperimentalData/". We divided 3cixty Nice and DBpedia KB datasets into two seperate folders.  
-For 3cixty-
-
-```{r}
-location="~/ExperimentalData/3cixtyNice/"
-```
-For DBpedia-
-
-```{r}
-location="~/ExperimentalData/DBpedia/"
-```
-
-The dataset presented in the folder is already processed and build in as intermediate data structure for the quality assessment approach. 
-
-
-It will generate the experiment results in html and pdf format.
 
 ### Output
 

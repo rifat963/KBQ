@@ -117,25 +117,18 @@ p<-persistencyPlot(entityData)
 
 ```
 
+
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
+
 
 #### Historical Persitency
 
@@ -144,21 +137,18 @@ histPer<-histPerAll(entityData)
 
 ```
 
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
 Releases with persistency values:
 
 ```{r,echo=FALSE}
 kable(histPer[,-c(1)], format = "markdown")
 ```
 
-Historical Persistency Measure Result: 
 
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 
 #### Consistency
-
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
@@ -169,7 +159,7 @@ consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -181,7 +171,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -193,12 +183,10 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 
 #### Completeness
 
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(i) Total no. of property =`r n`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
 
 List of inincomplete property:
 
@@ -223,9 +211,9 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
-KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
@@ -260,45 +248,32 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
 ```{r,echo=FALSE}
 kable(histPer[,-c(1)], format = "markdown")
 ```
-
-Historical Persistency Measure Result: 
-
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 
 #### Consistency
@@ -314,7 +289,7 @@ consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -326,7 +301,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -339,11 +314,9 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 #### Completeness
 
 
-(i) Total no. of property =`r n`
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -368,9 +341,9 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
-KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
@@ -405,46 +378,32 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
 ```{r,echo=FALSE}
 kable(histPer[,-c(1)], format = "markdown")
 ```
-
-Historical Persistency Measure Result: 
-
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
-
 
 #### Consistency
 
@@ -598,7 +557,7 @@ InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -610,7 +569,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -623,11 +582,9 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 #### Completeness
 
 
-(i) Total no. of property =`r n`
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -652,9 +609,9 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
-KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
@@ -690,33 +647,26 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
@@ -724,11 +674,7 @@ Releases with persistency values:
 kable(histPer[,-c(1)], format = "markdown")
 ```
 
-Historical Persistency Measure Result: 
 
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 
 #### Consistency
@@ -744,7 +690,7 @@ consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -756,7 +702,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -768,12 +714,9 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 
 #### Completeness
 
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(i) Total no. of property =`r n`
-
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -798,9 +741,9 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
-KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
@@ -835,33 +778,26 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
@@ -869,11 +805,8 @@ Releases with persistency values:
 kable(histPer[,-c(1)], format = "markdown")
 ```
 
-Historical Persistency Measure Result: 
 
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
+
 
 
 #### Consistency
@@ -889,7 +822,7 @@ consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -901,7 +834,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -913,12 +846,9 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 
 #### Completeness
 
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(i) Total no. of property =`r n`
-
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -943,9 +873,9 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
-KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
@@ -980,46 +910,32 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
- `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
- `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
- Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
 ```{r,echo=FALSE}
 kable(histPer[,-c(1)], format = "markdown")
 ```
-
-Historical Persistency Measure Result: 
-
-Total no. of class = `r length(unclass)`
-No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
-
 
 #### Consistency
 
@@ -1034,7 +950,7 @@ consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -1046,7 +962,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -1059,11 +975,9 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 #### Completeness
 
 
-(i) Total no. of property =`r n`
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -1088,7 +1002,7 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
 KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
@@ -1124,46 +1038,32 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
 ```{r,echo=FALSE}
 kable(histPer[,-c(1)], format = "markdown")
 ```
-
-Historical Persistency Measure Result: 
-
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
-
 
 #### Consistency
 
@@ -1178,7 +1078,7 @@ consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -1190,7 +1090,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -1202,12 +1102,9 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 
 #### Completeness
 
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(i) Total no. of property =`r n`
-
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -1232,9 +1129,9 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
-KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
@@ -1268,45 +1165,32 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
 ```{r,echo=FALSE}
 kable(histPer[,-c(1)], format = "markdown")
 ```
-
-Historical Persistency Measure Result: 
-
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 
 #### Consistency
@@ -1322,7 +1206,7 @@ consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -1334,7 +1218,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -1347,11 +1231,9 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 #### Completeness
 
 
-(i) Total no. of property =`r n`
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -1376,7 +1258,7 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
 KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
@@ -1414,45 +1296,32 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
 ```{r,echo=FALSE}
 kable(histPer[,-c(1)], format = "markdown")
 ```
-
-Historical Persistency Measure Result: 
-
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 
 #### Consistency
@@ -1468,7 +1337,7 @@ consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 
 ```{r,echo=FALSE}
@@ -1480,7 +1349,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
@@ -1492,12 +1361,9 @@ n=nrow(TwoSeriesData)+nrow(FilteredProperty)
 
 #### Completeness
 
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(i) Total no. of property =`r n`
-
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -1522,7 +1388,7 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
 KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
 
@@ -1560,33 +1426,26 @@ p<-persistencyPlot(entityData)
 
 ```
 
+#### Persistency
+
+Persistency Measure Result:  `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]` < `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`. So Persistency=  `r persistencyMeasure(entityData)`
 Entity Count for 11 Release:
 
 ```{r,echo=FALSE}
 kable(entityData[,-c(1)], format = "markdown")
-```
-
-#### Persistency
-
-Persistency Measure Result: 
-
-(i) `r entityData[nrow(entityData),3]` value  `r entityData[nrow(entityData),4]`
-(ii) `r entityData[nrow(entityData)-1,3]` value  `r entityData[nrow(entityData)-1,4]`
-(iii) Persistency=  `r persistencyMeasure(entityData)`
-
-```{r,echo=FALSE}
-
 shadeAreaP(p,entityData)
 
 ```
 
+
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
 histPer<-histPerAll(entityData)
 
 ```
+
+Historical Persistency Measure Result: Total no. of class = `r length(unclass)` and No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`. HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 Releases with persistency values:
 
@@ -1594,11 +1453,7 @@ Releases with persistency values:
 kable(histPer[,-c(1)], format = "markdown")
 ```
 
-Historical Persistency Measure Result: 
 
-(i) Total no. of class = `r length(unclass)`
-(ii) No. of persistency=`r nrow(histPer[histPer$Persistency==0,])`
-(iii) HistPersistencyMeasure= `r HistPersistencyMeasure(histPer)` %
 
 
 #### Consistency
@@ -1741,36 +1596,28 @@ InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X
 
 ```
 
-(i) No. of inconsistent property = `r nrow(FilteredProperty)`
-
+No. of inconsistent property = `r nrow(FilteredProperty)`
 
 ```{r,echo=FALSE}
 #kable(SubSetProp, format = "markdown")
-
 kable(FilteredProperty, format = "markdown")
-
 #head(FilteredProperty)
 
 ```
 
-(i) List of Consistent Property over last two version:
+List of Consistent Property over last two version:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
-
 n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
 
 ```
 
 #### Completeness
 
+Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
 
-(i) Total no. of property =`r n`
-
-(ii) No. of Consistent Property = `r nrow(TwoSeriesData)`
-
-(iii) No. of incomplete property = `r nrow(consistencyData)`
+Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
 
 List of inincomplete property:
 
@@ -1795,9 +1642,9 @@ graph
 stab<-CheckND(ND)
 
 ```
-The normalized distance(ND)=(abs(Last TimeSeries Value - Predicted Value)/mean(abs(Residuals))= `r ND`
+The normalized distance(ND)= `r ND`
 
-KB growth is 1 if ND<1 or KB growth is 0 if ND>=1
+KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
 
