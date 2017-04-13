@@ -3,8 +3,8 @@ title: "Prototype implementation on 3cixty Nice KB"
 author: "Rifat"
 date: "Tuesday, October 25, 2016"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 In this implementation we presents, 3cixty Nice 2 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented 3cixty Nice 2 class growth analysis measure:
 
