@@ -83,6 +83,8 @@ unclass=unique(entityDataSet$class)
 
 source("helper.R")
 
+
+
 entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
 
 ```
@@ -806,9 +808,6 @@ kable(histPer[,-c(1)], format = "markdown")
 ```
 
 
-
-
-
 #### Consistency
 
 
@@ -834,7 +833,7 @@ kable(FilteredProperty, format = "markdown")
 
 ```
 
-List of Consistent Property over last two version:
+List of Consistent Property over last two Releases:
 
 ```{r,echo=FALSE}
 kable(TwoSeriesData, format = "markdown")
