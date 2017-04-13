@@ -3,8 +3,8 @@ title: "Prototype implementation on DBpedia KB"
 author: "Rifat"
 date: "Monday, December 12, 2016"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 In this implementation we presents, Dbpedia 10 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented DBpedia growth analysis measure.
@@ -1420,7 +1420,7 @@ dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09
                            "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count43"="2016-04-01"))
 
 
-entityData=entityDataSet[entityDataSet$class==unclass[9],]
+entityData=entityDataSet[entityDataSet$class==unclass[10],]
 
 p<-persistencyPlot(entityData)
 
