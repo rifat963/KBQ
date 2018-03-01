@@ -1,0 +1,323 @@
+---
+title: "Prototype implementation on DBpedia KB"
+author: "Rifat"
+date: "Monday, November 5, 2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+In this implementation we presents, Dbpedia 10 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented DBpedia growth analysis measure.
+
+(i) [Class dbo Animal](#class-dbo-animal)
+(ii) [Class dbo Artist](#class-dbo-artist)
+(iii) [Class dbo Athlete](#class-dbo-athlete)
+(iv) [Class dbo Film](#class-dbo-film)
+(v) [Class dbo MusicalWork](#class-dbo-musicalwork)
+(vi) [Class dbo Organisation](#class-dbo-organisation)
+(vii) [Class dbo Place](#class-dbo-place)
+(viii) [Class dbo Species](#class-dbo-species)
+(ix) [Class dbo Work](#class-dbo-work)
+(X) [Class foaf Person](#class-foaf-person)
+
+##Quality Problem Report Overview
+
+###Input
+
+In this implementation the datasets is presented in folder "~/ExperimentalData/DBpedia" where each class property count over DBpedia 11 releases present in a CSV file. Also, the entity count of 10 classes presented in "DBpedia10ClassEntityCount.csv" file. 
+
+```{r}
+location="~/ExperimentalData/DBpedia/"
+```
+
+The dataset presented in the folder is already processed and build in a intermediate data structure for the quality assessment approach.
+To run the rmd file only need to specify the folder location for input data.
+
+###Results Structure
+
+(i) Persistency: A line graph presented to visualize variation on last two DBpedia Release.
+
+(i) Historical Persistency: A table with this classes with persistency issues over the 11 Releases.
+
+(iii) Consistency: Result of property values presented in a table. 1st table with incorrect property values and 2nd table with filtered property values
+
+(iv) Completeness: Result of property values presented in a table with normalized property values and difference between two version of normalized property values.
+
+(v) KB growth: A graph visualizing KB growth.
+
+
+## Experiment Results
+
+Input: Set Entity file location such as -
+
+
+```{r}
+location<- "/ExperimentalData/DBpedia/"
+```
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+# List of library
+
+library(ggplot2)
+library(plyr)
+library(dplyr)
+library(dtplyr)
+library(reshape2)
+library('knitr')
+library(reshape2)
+library(ggthemes)
+
+source("measure.R")
+
+
+#Implementation of consistency and completeness measures
+#Input entity files
+location<- "/ExperimentalData/DBpedia/"
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"DBpedia10ClassEntityCount.csv",sep = "")
+
+#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv"
+entityDataSet <- read.csv(loc,header=T)
+unclass=unique(entityDataSet$class)
+
+```
+
+
+### Over all Entity Analysis:
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+loc<-paste0(getwd(),location)
+
+loc<-paste0(loc,"DBpedia10ClassEntityCount.csv")
+
+entityDataSet <- read.csv(loc,header = T)
+
+entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
+
+
+#Total entity plot
+
+data = entityWithDays
+
+p<-ggplot(data=data, aes(x=Release, y=log10(count), group = class, color = class)) +
+           geom_line() +
+           geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) 
+           # theme_hc()+
+           # scale_colour_tableau()  
+p
+
+xmin=data[10,3]
+xmax=data[11,3]
+
+rect <- data.frame(xmin=data[10,3], xmax=data[11,3], ymin=-Inf, ymax=Inf)
+p + geom_rect(data=rect, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+              color="white",
+              alpha=0.2,
+              inherit.aes = FALSE)
+
+# head(entityWithDays)
+
+```
+
+
+### Class dbo Animal
+
+[http://dbpedia.org/ontology/Animal]
+
+Input: set file location such as -
+
+```{r}
+location<- "/ExperimentalData/DBpedia/"
+```
+
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Animal.csv"
+
+loc<-paste(getwd(),location,sep = "")
+
+loc<-paste(loc,"dbo-Animal.csv",sep = "")
+dTproperty <- read.csv(loc,header = TRUE)
+
+head(dTproperty)
+
+lastTwoVersion= data.frame(Property=dTproperty$property,InstanceCount201510=dTproperty$v2015.10.02,InstanceCount201604=dTproperty$v2016.04.01)
+
+head(lastTwoVersion)
+
+lastTwoVersion$Sum=0
+
+for(i in 1:nrow(lastTwoVersion)){
+
+  lastTwoVersion[i,]$Sum=lastTwoVersion[i,]$InstanceCount201510+lastTwoVersion[i,]$InstanceCount201604
+    
+}
+
+lastTwoVersion=lastTwoVersion[lastTwoVersion$Sum!=0,]
+lastTwoVersion$Sum<-NULL
+
+lastTwoVersion=lastTwoVersion[lastTwoVersion$InstanceCount201604!=0,]
+
+lastTwoVersion=lastTwoVersion[lastTwoVersion$InstanceCount201510!=0,]
+
+lastTwoVersion$diff=0
+
+
+for(i in 1:nrow(lastTwoVersion)){
+  
+  lastTwoVersion[i,]$diff=lastTwoVersion[i,]$InstanceCount201604 - lastTwoVersion[i,]$InstanceCount201510  
+
+}
+
+head(lastTwoVersion)
+
+nrow(lastTwoVersion)
+
+dbo.animal.Entity = entityWithDays[entityWithDays$class=="dbo-animal",]
+
+lastTwoVersion$Inst.Count.Norm201510=0
+lastTwoVersion$Inst.Count.Norm201604=0
+
+lastTwoVersion$Compare=0
+
+for(i in 1:nrow(lastTwoVersion)){
+  
+  lastTwoVersion[i,]$Inst.Count.Norm201604=round(lastTwoVersion[i,]$InstanceCount201604/dbo.animal.Entity[nrow(dbo.animal.Entity),]$count,4) 
+  
+  lastTwoVersion[i,]$Inst.Count.Norm201510=round(lastTwoVersion[i,]$InstanceCount201510/dbo.animal.Entity[nrow(dbo.animal.Entity)-1,]$count,4)
+  
+  lastTwoVersion[i,]$Compare=ifelse(lastTwoVersion[i,]$Inst.Count.Norm201510>lastTwoVersion[i,]$Inst.Count.Norm201604,0,1)
+}
+
+lastTwoVersion$percent201604<- round(prop.table(lastTwoVersion$InstanceCount201604),2)
+
+## Consistency Results based on the 95% confidence interval and normal distribution
+
+head(lastTwoVersion)
+
+# for 201604
+
+length(lastTwoVersion$InstanceCount201604)
+
+error <- qt(0.975,df=length(lastTwoVersion$InstanceCount201604)-1)*sd(lastTwoVersion$InstanceCount201604)/sqrt(length(lastTwoVersion$InstanceCount201604))
+
+left<- mean(lastTwoVersion$InstanceCount201604) - error
+right<- mean(lastTwoVersion$InstanceCount201604) + error
+
+
+ # ggplot(dat, aes(x=cond, y=rating)) + geom_boxplot()
+
+
+# using linear regression
+
+fit <- lm(InstanceCount201510~InstanceCount201604,lastTwoVersion)
+
+## Standard normal distribution:
+
+xvalues <- data.frame(x = c(left,right))
+ 
+plot <- ggplot(xvalues, aes(x = x))
+ 
+plot + stat_function(fun = dnorm) + xlim(c(left, right))
+
+
+t.test(lastTwoVersion$Inst.Count.Norm201604, conf.level = 0.9)
+
+ggplot(lastTwoVersion, aes(InstanceCount201604)) +
+  geom_density()
+
+ggplot(lastTwoVersion, aes(Property, InstanceCount201604)) + geom_step()
+
+lastTwoVersion$class="dbo-animal"
+
+p <- ggplot(lastTwoVersion, aes(x=class,y =  Inst.Count.Norm201604)) +
+        geom_boxplot()
+
+p
+
+ggplot(lastTwoVersion, aes(x=Inst.Count.Norm201604)) +
+    geom_histogram(binwidth=.5, colour="black", fill="white") +
+    geom_vline(aes(xintercept=mean(Inst.Count.Norm201604, na.rm=T)),   # Ignore NA values for mean
+               color="red", linetype="dashed", size=1)
+  
+
+cdf_fun <- ecdf(lastTwoVersion$InstanceCount201510)  
+plot(cdf_fun, xlab="Number of prop",  
+     ylab="Frequency",main="")
+
+ggplot(lastTwoVersion, aes(x=Inst.Count.Norm201510)) + stat_ecdf() 
+
+
+```
+```{r,echo=FALSE}
+
+kable(lastTwoVersion, format = "markdown")
+
+```
+
+#### Persistency
+
+
+
+
+#### Historical Persitency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+```
+
+```{r,echo=FALSE}
+
+
+```
+
+
+
+
+#### Consistency
+
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+
+
+```
+
+
+
+```{r,echo=FALSE}
+#kable(SubSetProp, format = "markdown")
+
+
+#head(FilteredProperty)
+
+```
+
+
+```{r,echo=FALSE}
+
+```
+
+#### Completeness
+
+
+```{r,echo=FALSE}
+
+
+```
+
+#### KB growth 
+
+
+```{r,echo=FALSE}
+
+
+```
+
+
+### Class dbo Artist
+
+
