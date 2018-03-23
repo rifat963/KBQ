@@ -9,6 +9,10 @@ library('knitr')
 library(reshape2)
 
 
+# Consistency check
+
+
+
 ##Entity Plot Function
 fnplot<-function(data){
   
@@ -242,46 +246,52 @@ normalize<-function(property,en){
 identifyCorrectProperty<-function(property,en){
   
   dTproperty=property
-  d=3
-  t=11
   
+  print(dTproperty)
+  
+  d=3
+
+  t=11
+
+  countEntity=100
+
   for(i in 1:11){
-    
-    countEntity=100#en[t,]$count/10000
-    
-    #   print(countEntity)  
+
+  #en[t,]$count/10000
+
+    #   print(countEntity)
     #   print(length(dTproperty[,d]))
-    
+
     prop=dTproperty[,d]
-    
+
     for(j in 1:length(prop)){
-      
+
       if(prop[j]>countEntity){
         prop[j]=prop[j]
       }
       else{
-        prop[j]=0           
+        prop[j]=0
       }
     }
-    
+
     dTproperty[,d]=prop
     d=d+1
     t=t-1
   }
-  
-  
+
+
   require(data.table)
   DT=data.table(dTproperty)
-  
-  
+
+
   listCol <- colnames(DT)[grep("-", colnames(DT))]
-  
+
   DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
-  
+
   Rproperty=data.frame(DT)
-  
+
   CorrectProperty=Rproperty[Rproperty$Sum!=0,]
-  
+  # 
   return(CorrectProperty)
   
 }
@@ -414,7 +424,6 @@ CorrectProperty = identifyCorrectProperty(dTproperty,en)
 
 # InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
 
-
 avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
 
 NondTproperty=dTproperty
@@ -461,7 +470,6 @@ NdTproperty=CorrectProperty[,-c(14)]
 
 propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
 
-
 require(data.table)
 DT=data.table(propertySubSet)
 
@@ -500,7 +508,6 @@ for(i in 1:11){
 }
 
 NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
-
 
 consistencyData=NdTproperty[NdTproperty$diffLast<0,]
 

@@ -1,10 +1,9 @@
 ---
-title: "Prototype implementation on DBpedia KB"
-author: "Rifat"
-date: "Monday, December 12, 2016"
+title: "Prototype implementation for DBpedia KB"
+author: "Mohammad Rifat Ahmmad Rashid"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 In this implementation we presents, Dbpedia 10 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented DBpedia growth analysis measure.
@@ -29,12 +28,14 @@ In this implementation we presents, Dbpedia 10 class quality analysis report bas
 In this implementation the datasets is presented in folder "~/ExperimentalData/DBpedia" where each class property count over DBpedia 11 releases present in a CSV file. Also, the entity count of 10 classes presented in "DBpedia10ClassEntityCount.csv" file. 
 
 ```{r}
+
 location="~/ExperimentalData/DBpedia/"
+
 ```
 
 The dataset presented in the folder is already processed and build in a intermediate data structure for the quality assessment approach.
 
-To run the rmd file only need to specify the folder location for input data.
+To run the rmd file only need to specify the folder location as input data.
 
 
 ###Results Structure
@@ -55,7 +56,9 @@ To run the rmd file only need to specify the folder location for input data.
 Input: Set Entity file location such as -
 
 ```{r}
+
 location<- "/ExperimentalData/DBpedia/"
+
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
@@ -70,21 +73,17 @@ library(reshape2)
 library(hts)
 library('knitr')
 library(reshape2)
-#Implementation of consistency and completeness measures
-#Input entity files
-
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"DBpedia10ClassEntityCount.csv",sep = "")
-
-#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv"
-entityDataSet <- read.csv(loc)
-unclass=unique(entityDataSet$class)
-
 source("helper.R")
 
+#Implementation of consistency and completeness measures
+#Input entity files
+# loc<-paste(getwd(),location,sep = "")
+# loc<-paste(loc,"DBpedia10ClassEntityCount.csv",sep = "")
 
+property=read.csv("./ExperimentalData/DBpedia/property-id.csv")
 
+entityDataSet <- read.csv("./ExperimentalData/DBpedia/DBpedia10ClassEntityCount.csv")
+unclass=unique(entityDataSet$class)
 entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
 
 ```
@@ -97,28 +96,17 @@ entityWithDays= ddply(entityDataSet,.(class), here(transform), days=fn(Release))
 Input: set file location such as -
 
 ```{r}
-location<- "/ExperimentalData/DBpedia/"
+location<- "./ExperimentalData/DBpedia/"
 ```
 
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
-#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Animal.csv"
-
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"dbo-Animal.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
 
 entityData=entityDataSet[entityDataSet$class==unclass[1],]
 
 p<-persistencyPlot(entityData)
 
 ```
-
 
 #### Persistency
 
@@ -147,53 +135,158 @@ Releases with persistency values:
 kable(histPer[,-c(1)], format = "markdown")
 ```
 
-
-
-
 #### Consistency
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
-TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
-dataSet<-dataSetFun(dTproperty,entityDataSet)
-consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-animal/animal-201604.csv")
+
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-animal/animal-201510.csv")
+
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-animal/animal-201504.csv")
+
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
+
+Threshold value evaluation:
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
+
+# nonzero= st201604[st201604$count35!=0,]
+
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
+
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
+
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
+
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
+
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
+
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
+
+total=nrow(lastReleaseDataset)
+
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
 
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
+
+kable(lastReleaseDataset, format = "markdown")
 
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two version:
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
 
-List of inincomplete property:
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
+
+```
+
+List of Property over last two version:
 
 ```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
 
 ```
 
@@ -213,11 +306,14 @@ graph
 stab<-CheckND(ND)
 
 ```
+
 The normalized distance(ND)= `r ND`
 
 KB growth condition is 1 if ND<1 or KB growth is 0 if ND>=1
 
 KB growth=`r stab`
+
+
 
 ### Class dbo Artist
 
@@ -230,19 +326,6 @@ location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-
-#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-Artist.csv"
-#dTproperty <- read.csv(location,header = TRUE)
-
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"dbo-Artist.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
-
 
 entityData=entityDataSet[entityDataSet$class==unclass[2],]
 
@@ -280,50 +363,156 @@ kable(histPer[,-c(1)], format = "markdown")
 
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-artist/artist-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-artist/artist-201510.csv")
 
-FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
-TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
-dataSet<-dataSetFun(dTproperty,entityDataSet)
-consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-artist/artist-201504.csv")
+
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
+
+Threshold value evaluation:
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
+
+# nonzero= st201604[st201604$count35!=0,]
+
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
+
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
+
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
+
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
+
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
+
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
+
+total=nrow(lastReleaseDataset)
+
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
 
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
+
+kable(lastReleaseDataset, format = "markdown")
 
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two version:
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
 
-List of inincomplete property:
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
+
+```
+
+List of Property over last two version:
 
 ```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
 
 ```
 
@@ -361,18 +550,6 @@ location<- "/ExperimentalData/DBpedia/"
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-#location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-athlete.csv"
-#dTproperty <- read.csv(location,header = TRUE)
-
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"dbo-athlete.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
-
 
 entityData=entityDataSet[entityDataSet$class==unclass[3],]
 
@@ -409,192 +586,158 @@ kable(histPer[,-c(1)], format = "markdown")
 
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-athlete/athlete-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-athlete/athlete-201510.csv")
 
-unclass=unique(entityWithDays$class)
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-athlete/athlete-201504.csv")
 
-en=entityDataSet[entityDataSet$class==unclass[3],]
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
 
-# dTproperty=normalize(dTproperty,en)
+Threshold value evaluation:
 
-dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
 
-#write.csv(dTproperty, file = "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-athlete.csv")
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
 
-NondTproperty=dTproperty
+# nonzero= st201604[st201604$count35!=0,]
 
-NondTproperty=dTproperty
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
 
-CorrectProperty = identifyCorrectProperty(dTproperty,en)
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
 
-# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
 
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
 
-avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
 
-NondTproperty=dTproperty
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
 
-d=3
-t=11
+total=nrow(lastReleaseDataset)
 
-for(i in 1:11){
-     
-  countEntity=100#avg/20000#en[t,]$count/10000
-  
-#   print(countEntity)  
-#   print(length(dTproperty[,d]))
-
-  Nonprop=NondTproperty[,d]
-  
-  for(j in 1:length(Nonprop)){
-      
-       if(Nonprop[j]>countEntity){
-         Nonprop[j]=0
-       }
-       else{
-         Nonprop[j]=Nonprop[j]        
-       }
-  }
-  print(Nonprop)  
-  NondTproperty[,d]=Nonprop
-  d=d+1
-  t=t-1
-}
-
-require(data.table)
-DT=data.table(NondTproperty)
-
-listCol <- colnames(DT)[grep("-", colnames(DT))]
-
-DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
-
-NonRproperty=data.frame(DT)
-
-IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
-
-head(IncorrectProperty)
-
-# return(IncorrectProperty)
-
-
-# nrow(NonRproperty)-nrow(IncorrectProperty)
-# 
-# nrow(Rproperty)-nrow(CorrectProperty)
-
-NdTproperty=CorrectProperty[,-c(14)]
-
-propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
-
-
-require(data.table)
-DT=data.table(propertySubSet)
-
-listCol <- colnames(DT)[grep("v", colnames(DT))]
-
-DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
-
-propertySubSet=data.frame(DT)
-
-FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
-
-FilteredProperty=FilteredProperty[,-c(5)]
-
-nrow(FilteredProperty)
-
-CorrectProperty = identifyCorrectProperty(dTproperty,en)
-
-InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
-
-SubSetProp=SubSetProperty(NondTproperty,en)
-
-# nrow(NonRproperty)-nrow(IncorrectProperty)
-# 
-# nrow(Rproperty)-nrow(CorrectProperty)
-
-NdTproperty=CorrectProperty[,-c(14)]
-
-# normalize(NdTproperty,en)
-d=3
-t=11
-for(i in 1:11){
-
-    norm= NdTproperty[,d]/en[t,]$count
-
-    NdTproperty[,d]=norm
-    d=d+1
-#     print(norm)
-    t=t-1
-}
-
-NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
-
-# print(dTproperty)
-# head(dTproperty)
-
-# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
-
-consistencyData=NdTproperty[NdTproperty$diffLast<0,]
-
-nrow(dTproperty)
-
-nrow(consistencyData)
-
-dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
-
-entityVal=en
-
-entityVal$WeightValue=en$count/10000
-
-CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
-
-TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
-
-TwoSeriesData=data.frame(property=TwoSeries$property,v201604=TwoSeries$X2016.04.01,v201510=TwoSeries$X2015.10.02,v201504=TwoSeries$X2015.02.05)
-
-
-InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
-
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
 
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+ 
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
+
+kable(lastReleaseDataset, format = "markdown")
 
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two version:
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
 
-List of inincomplete property:
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
 
-```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+ completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
 
 ```
 
+List of Property over last two version:
+
+```{r,echo=FALSE}
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
+
+```
 #### KB growth 
 
 
@@ -630,17 +773,7 @@ location<- "/ExperimentalData/DBpedia/"
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-film.csv"
-# dTproperty <- read.csv(location,header = TRUE)
 
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"dbo-film.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
 
 
 entityData=entityDataSet[entityDataSet$class==unclass[4],]
@@ -678,52 +811,158 @@ kable(histPer[,-c(1)], format = "markdown")
 
 
 
-
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-film/film-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-film/film-201510.csv")
 
-FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
-TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
-dataSet<-dataSetFun(dTproperty,entityDataSet)
-consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-film/film-201504.csv")
+
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
+
+Threshold value evaluation:
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
+
+# nonzero= st201604[st201604$count35!=0,]
+
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
+
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
+
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
+
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
+
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
+
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
+
+total=nrow(lastReleaseDataset)
+
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
 
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
+
+kable(lastReleaseDataset, format = "markdown")
 
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two version:
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-List of inincomplete property:
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
+
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
+
+```
+
+List of Property over last two version:
 
 ```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
 
 ```
 
@@ -761,19 +1000,6 @@ location<- "/ExperimentalData/DBpedia/"
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-musicalWork.csv"
-# dTproperty <- read.csv(location,header = TRUE)
-
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"dbo-musicalWork.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
-
-
 entityData=entityDataSet[entityDataSet$class==unclass[5],]
 
 p<-persistencyPlot(entityData)
@@ -810,49 +1036,156 @@ kable(histPer[,-c(1)], format = "markdown")
 
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-musicalWork/musicalWork-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-musicalWork/musicalWork-201510.csv")
 
-FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
-TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
-dataSet<-dataSetFun(dTproperty,entityDataSet)
-consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-musicalWork/musicalWork-201504.csv")
+
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
+
+Threshold value evaluation:
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
+
+# nonzero= st201604[st201604$count35!=0,]
+
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
+
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
+
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
+
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
+
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
+
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
+
+total=nrow(lastReleaseDataset)
+
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
 
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+  
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
+
+kable(lastReleaseDataset, format = "markdown")
 
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two Releases:
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-List of inincomplete property:
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
+
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+ completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
+
+```
+
+List of Property over last two version:
 
 ```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
 
 ```
 
@@ -890,19 +1223,6 @@ location<- "/ExperimentalData/DBpedia/"
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-organisation.csv"
-# dTproperty <- read.csv(location,header = TRUE)
-
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"dbo-organisation.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
-
-
 entityData=entityDataSet[entityDataSet$class==unclass[6],]
 
 p<-persistencyPlot(entityData)
@@ -938,50 +1258,152 @@ kable(histPer[,-c(1)], format = "markdown")
 
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-organisation/org-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-organisation/org-201510.csv")
 
-FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
-TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
-dataSet<-dataSetFun(dTproperty,entityDataSet)
-consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-organisation/org-201504.csv")
 
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+Threshold value evaluation:
 
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
+
+# nonzero= st201604[st201604$count35!=0,]
+
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
+
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
+
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
+
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
+
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
+
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
+
+total=nrow(lastReleaseDataset)
+
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
+
+```
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
-
-#head(FilteredProperty)
-
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+ 
 ```
 
-List of Consistent Property over last two version:
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
+kable(lastReleaseDataset, format = "markdown")
 
 ```
+
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
+
+```{r,echo=FALSE}
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
+```
+
 
 #### Completeness
 
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
 
-List of inincomplete property:
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
+
+```
+
+List of Property over last two version:
 
 ```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
 
 ```
 
@@ -1020,16 +1442,6 @@ location<- "/ExperimentalData/DBpedia/"
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-place.csv"
-# dTproperty <- read.csv(location,header = TRUE)
-
-loc<-paste(getwd(),location,sep = "")
-loc<-paste(loc,"dbo-place.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
-
 
 entityData=entityDataSet[entityDataSet$class==unclass[7],]
 
@@ -1066,52 +1478,158 @@ kable(histPer[,-c(1)], format = "markdown")
 
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-place/place-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-place/place-201510.csv")
 
-FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
-TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
-dataSet<-dataSetFun(dTproperty,entityDataSet)
-consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-place/place-201504.csv")
+
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
+
+Threshold value evaluation:
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
+
+# nonzero= st201604[st201604$count35!=0,]
+
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
+
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
+
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
+
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
+
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
+
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
+
+total=nrow(lastReleaseDataset)
+
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
 
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+ 
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
+
+kable(lastReleaseDataset, format = "markdown")
 
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two version:
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-List of inincomplete property:
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
 
-```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
 
 ```
 
+List of Property over last two version:
+
+```{r,echo=FALSE}
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
+
+```
 #### KB growth 
 
 
@@ -1145,17 +1663,7 @@ location<- "/ExperimentalData/DBpedia/"
 ```
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
-# 
-# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-species.csv"
-# dTproperty <- read.csv(location,header = TRUE)
 
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"dbo-species.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
 
 
 entityData=entityDataSet[entityDataSet$class==unclass[8],]
@@ -1194,50 +1702,156 @@ kable(histPer[,-c(1)], format = "markdown")
 
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-species/species-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-species/species-201510.csv")
 
-FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
-TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
-dataSet<-dataSetFun(dTproperty,entityDataSet)
-consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-species/species-201504.csv")
+
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
+
+Threshold value evaluation:
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
+
+# nonzero= st201604[st201604$count35!=0,]
+
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
+
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
+
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
+
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
+
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
+
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
+
+total=nrow(lastReleaseDataset)
+
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
 
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
+
+kable(lastReleaseDataset, format = "markdown")
 
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two version:
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
 
-List of inincomplete property:
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+ completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
+
+```
+
+List of Property over last two version:
 
 ```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
 
 ```
 
@@ -1276,18 +1890,6 @@ location<- "/ExperimentalData/DBpedia/"
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/dbo-work.csv"
-# dTproperty <- read.csv(location,header = TRUE)
-
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"dbo-work.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count35.1"="2016-04-01"))
-
 
 entityData=entityDataSet[entityDataSet$class==unclass[9],]
 
@@ -1325,49 +1927,156 @@ kable(histPer[,-c(1)], format = "markdown")
 
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/dbo-work/work-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/dbo-work/work-201510.csv")
 
-FilteredProperty<-FilteredPropertyfun(dTproperty,entityDataSet)
-TwoSeriesData<-TwoSeriesDataFun(dTproperty,entityDataSet)
-dataSet<-dataSetFun(dTproperty,entityDataSet)
-consistencyData<-consistencyDataFun(dTproperty,entityDataSet)
+st201504=read.csv("./ExperimentalData/DBpedia/dbo-work/work-201504.csv")
+
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
+
+Threshold value evaluation:
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
+
+# nonzero= st201604[st201604$count35!=0,]
+
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
+
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
+
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
+
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
+
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
+
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
+
+total=nrow(lastReleaseDataset)
+
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
 
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ 
+  geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+ 
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
 
-kable(FilteredProperty, format = "markdown")
+
+kable(lastReleaseDataset, format = "markdown")
 
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two version:
+No. of inconsistent property in 201604 release for Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-List of inincomplete property:
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
+
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+ completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
+
+```
+
+List of Property over last two version:
 
 ```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
 
 ```
 
@@ -1407,18 +2116,6 @@ location<- "/ExperimentalData/DBpedia/"
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-# location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/DBpedia/foaf-person.csv"
-# dTproperty <- read.csv(location,header = TRUE)
-
-loc<-paste(getwd(),location,sep = "")
-
-loc<-paste(loc,"foaf-person.csv",sep = "")
-dTproperty <- read.csv(loc,header = TRUE)
-
-dTproperty=plyr::rename(dTproperty, c("count33"="2009-05-20", "count34"="2009-09-20","count201504"="2015-02-05","count201510"="2015-10-02","count35"="2010-03-16","count36"="2010-10-11",
-                           "count37"="2011-07-22","count38"="2012-06-01","count39"="2013-0-03","count40"="2014-05-02","count43"="2016-04-01"))
-
-
 entityData=entityDataSet[entityDataSet$class==unclass[10],]
 
 p<-persistencyPlot(entityData)
@@ -1454,176 +2151,162 @@ kable(histPer[,-c(1)], format = "markdown")
 
 
 
-
 #### Consistency
 
+```{r,echo=FALSE,comment=NA, results='hide', message=FALSE, warning=FALSE}
+# entityList dbo:Animal Class
+entityList=entityDataSet[entityDataSet$class==unclass[1],]
 
-```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+st201604=read.csv("./ExperimentalData/DBpedia/foaf-person/person-201604.csv")
 
+st201510=read.csv("./ExperimentalData/DBpedia/foaf-person/person-201510.csv")
 
-unclass=unique(entityWithDays$class)
+st201504=read.csv("./ExperimentalData/DBpedia/foaf-person/person-201504.csv")
 
-en=entityDataSet[entityDataSet$class==unclass[10],]
+intDataStructure=cbind(property,st201604,st201510,st201504)
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+intDataStructure$id<-NULL
+head(intDataStructure)
+# filter
+filterData= intDataStructure[intDataStructure$count201510!=0,]
+#dencityPlot
+```
 
-# dTproperty=normalize(dTproperty,en)
+Threshold value evaluation:
 
-dTproperty<-dTproperty[,order(colnames(dTproperty),decreasing=TRUE)]
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
 
+# nonzero= st201504[st201504$count201504!=0,]
+ 
+# nonzero= st201510[st201504$count201504!=0,]
 
+# nonzero= st201604[st201604$count35!=0,]
 
-head(dTproperty)
+nonzero201504 = st201504[st201504$count201504!=0,]
+nonzero201504$Release="v201504"
+nonzero201504$Frequency=nonzero201504$count201504
+nonzero201504$count201504<-NULL
 
-NondTproperty=dTproperty
+nonzero201510 = st201510[st201510$count201510!=0,]
+nonzero201510$Release="v201510"
+nonzero201510$Frequency=nonzero201510$count201510
+nonzero201510$count201510<-NULL
 
-CorrectProperty = identifyCorrectProperty(dTproperty,en)
+nonzero201604 = st201604[st201604$count201604!=0,]
+nonzero201604$Frequency=nonzero201604$count201604  
+nonzero201604$count201604<-NULL
+nonzero201604$Release="v201604"
 
-# InCorrectPropery= identifyInCorrectProperty(NondTproperty,en)
+nonzeroAllrelease=rbind(nonzero201604,nonzero201510,nonzero201504)
 
+lastRelease=cbind(property,st201604)
+lastRelease$id<-NULL
+lastRelease$id<-NULL
+# head(lastRelease)
 
-avg=(en[11,]$count+en[10,]$count+en[9,]$count)/3
+lastReleaseDataset=lastRelease[lastRelease$count201604!=0,]
 
-NondTproperty=dTproperty
+total=nrow(lastReleaseDataset)
 
-d=3
-t=11
-
-for(i in 1:11){
-     
-  countEntity=100#avg/20000#en[t,]$count/10000
-  
-#   print(countEntity)  
-#   print(length(dTproperty[,d]))
-
-  Nonprop=NondTproperty[,d]
-  
-  for(j in 1:length(Nonprop)){
-      
-       if(Nonprop[j]>countEntity){
-         Nonprop[j]=0
-       }
-       else{
-         Nonprop[j]=Nonprop[j]        
-       }
-  }
-  print(Nonprop)  
-  NondTproperty[,d]=Nonprop
-  d=d+1
-  t=t-1
-}
-
-require(data.table)
-DT=data.table(NondTproperty)
-
-listCol <- colnames(DT)[grep("-", colnames(DT))]
-
-DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
-
-NonRproperty=data.frame(DT)
-
-IncorrectProperty=NonRproperty[NonRproperty$Sum!=0,]
-
-head(IncorrectProperty)
-
-# return(IncorrectProperty)
-
-
-# nrow(NonRproperty)-nrow(IncorrectProperty)
-# 
-# nrow(Rproperty)-nrow(CorrectProperty)
-
-NdTproperty=CorrectProperty[,-c(14)]
-
-propertySubSet=data.frame(property=IncorrectProperty[,1],v201604=IncorrectProperty[,3],v201510=IncorrectProperty[,4],v201502=IncorrectProperty[,5])
-
-
-require(data.table)
-DT=data.table(propertySubSet)
-
-listCol <- colnames(DT)[grep("v", colnames(DT))]
-
-DT[, Sum := Reduce('+', .SD), .SDcols=listCol][]
-
-propertySubSet=data.frame(DT)
-
-FilteredProperty=propertySubSet[propertySubSet$Sum!=0,]
-
-FilteredProperty=FilteredProperty[,-c(5)]
-
-nrow(FilteredProperty)
-
-# normalize(NdTproperty,en)
-d=3
-t=11
-for(i in 1:11){
-
-    norm= NdTproperty[,d]/avg#$en[t,]$count
-
-    NdTproperty[,d]=norm
-    d=d+1
-#     print(norm)
-    t=t-1
-}
-
-NdTproperty$diffLast=NdTproperty[,3]-NdTproperty[,4]
-
-# print(dTproperty)
-# head(dTproperty)
-
-# NdTproperty$diffLast=dTproperty[,3]-dTproperty[,4]
-
-consistencyData=NdTproperty[NdTproperty$diffLast<0,]
-
-nrow(dTproperty)
-
-nrow(consistencyData)
-
-dataSet=data.frame(property=consistencyData$property,Version201604=consistencyData$X2016.04.01,Version201510=consistencyData$X2015.10.02,NormFreqDiff=consistencyData$diffLast)
-
-entityVal=en
-
-entityVal$WeightValue=100#en$count/10000
-
-CorrectProperty$diff=CorrectProperty[,3]+CorrectProperty[,4]
-
-TwoSeries=CorrectProperty[CorrectProperty$diff!=0,]
-
-TwoSeriesData=data.frame(Property=TwoSeries$property,version201604=TwoSeries$X2016.04.01,version201510=TwoSeries$X2015.10.02,version201504=TwoSeries$X2015.02.05)
-
-
-InCdata=data.frame(Property=InCorrectPropery$property,v201604=InCorrectPropery$X2016.04.01,v201510=InCorrectPropery$X2015.10.02,v201502=InCorrectPropery$X2015.02.05)
-
+no.incomplete=nrow(lastReleaseDataset[lastReleaseDataset$count201604<100,])
 
 ```
 
-No. of inconsistent property = `r nrow(FilteredProperty)`
+```{r,echo=FALSE}
+
+ggplot(nonzeroAllrelease, aes(Frequency, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10') + 
+  geom_vline(aes(xintercept = 100),color="blue", linetype="dashed", size=.1)+ xlab("log10(Property Frequency)") 
+ 
+```
+
+Property list in 201604 with frequency:
 
 ```{r,echo=FALSE}
-#kable(SubSetProp, format = "markdown")
-kable(FilteredProperty, format = "markdown")
+
+
+kable(lastReleaseDataset, format = "markdown")
+
 #head(FilteredProperty)
 
 ```
 
-List of Consistent Property over last two version:
+No. of inconsistent property in 201604 release with Threshold value of 100 = `r no.incomplete`
 
 ```{r,echo=FALSE}
-kable(TwoSeriesData, format = "markdown")
-n=nrow(TwoSeriesData)+nrow(FilteredProperty)
-
+kable(lastReleaseDataset[lastReleaseDataset$count<100,], format = "markdown")
 ```
+
 
 #### Completeness
 
-Total no. of property =`r n` No. of Consistent Property = `r nrow(TwoSeriesData)` No. of incomplete property = `r nrow(consistencyData)`
+```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
-Percentage of completeness= `r ((nrow(TwoSeriesData)-nrow(consistencyData))/nrow(TwoSeriesData)) *100` %
+#----------------------------Completeness-------------------------------#
+st=cbind(property,st201604,st201510)
+# nrow(st)
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+st$id<-NULL
+head(st)
 
-List of inincomplete property:
+# normalized the value 
+value201510= entityList[entityList$Release=="2015-10-02",]
+value201604= entityList[entityList$Release=="2016-04-01",]
 
-```{r,echo=FALSE}
-kable(dataSet, format = "markdown")
+# Set last two releases
+fullDataset=st[st$count201510!=0,]
+# change header
+# colnames(fullDataset)[which(names(fullDataset) == "count35")] <- "count201604"
+
+nromFullDataSet=fullDataset
+
+nromFullDataSet$norm201510=fullDataset$count201510/value201510$count
+
+nromFullDataSet$norm201604=fullDataset$count201604/value201604$count
+
+nromFullDataSet$diff=nromFullDataSet$norm201604-nromFullDataSet$norm201510
+
+length(which(nromFullDataSet$diff<0))
+
+nromFullDataSet$Complete=ifelse(nromFullDataSet$diff<0,0,1)
+
+normCompletenssValue=nromFullDataSet[nromFullDataSet$count201604<nromFullDataSet$count201510,]
+
+tableCompleteness=data.frame(Property=nromFullDataSet$property,v201604=nromFullDataSet$norm201604,v20510=nromFullDataSet$norm201510,Complete=nromFullDataSet$Complete)
+
+# nrow(normCompletenssValue)
+
+# Completeness value
+ completenessValue=fullDataset[fullDataset$count201604<fullDataset$count201510,]
 
 ```
+
+List of Property over last two version:
+
+```{r,echo=FALSE}
+kable(tableCompleteness, format = "markdown")
+
+```
+
+Total no. of property =`r length(nromFullDataSet$norm201604)` No. of incomplete property = `r nrow(completenessValue)`
+
+Percentage of completeness= `r ((length(nromFullDataSet$norm201604)-nrow(completenessValue))/length(nromFullDataSet$norm201604)) *100` %
+
+
+List of incomplete property:
+
+```{r,echo=FALSE}
+kable(tableCompleteness[tableCompleteness$Complete==0,], format = "markdown")
+
+```
+
+
 
 #### KB growth 
 

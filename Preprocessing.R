@@ -67,8 +67,80 @@ head(data)
 
 write.csv(data,paste0(dir,fileName),row.names = F)
 
+library(caret)
+
+st=read.csv("C:/Users/rifat/Desktop/R_milan/githubRepo/FeatureEngineering/dataset/evolution/3cixtyNice/lode-Event-property.csv")
+
+st=read.csv("C:/Users/rifat/Desktop/R_milan/githubRepo/RDFShapeInduction/dataset/3cixtyPropList.csv")
+
+st=read.csv("C:/Users/rifat/Desktop/R_milan/githubRepo/RDFShapeInduction/dataset/EnglishDBpediaPropertyPlaceProperty.csv")
+
+head(st)
+
+nrow(st)
+
+length(unique(st$Property))
+
+train=data.frame(property=unique(st$Property))
+
+head(train)
+
+train$Class="IRI"
+
+train=train[1:215,]
+
+intrain <- createDataPartition(y = train$Class, p= 0.7, list = FALSE)
+
+training <- train[intrain,]
+
+testing <- train[-intrain,]
 
 
+testing$Class[testing$Class=="IRI"]="LIT"
+
+head(testing)
+
+trainF=rbind(training,testing)
+
+nrow(trainF[trainF$Class=="LIT",])
+
+trainF <- trainF[sample(nrow(trainF)),]
+
+# length(unique(tainF))
+
+write.csv(trainF,"C:/Users/rifat/Desktop/R_milan/githubRepo/RDFShapeInduction/dataset/lode-Event-property-range.csv",row.names = F)
 
 
+write.csv(trainF,"C:/Users/rifat/Desktop/R_milan/githubRepo/RDFShapeInduction/dataset/dbo-Place-property-range.csv",row.names = F)
 
+
+set.seed(0)
+actual = c('a','b','c')[runif(100, 1,6)] # actual labels
+
+# actual = c('a','b')[128,25] # actual labels
+
+predicted = actual # predicted labels
+predicted[runif(30,1,100)] = actual[runif(30,1,100)]  # introduce incorrect predictions
+cm = as.matrix(table(Actual = actual, Predicted = predicted)) # create the confusion matrix
+cm
+
+n = sum(cm) # number of instances
+nc = nrow(cm) # number of classes
+diag = diag(cm) # number of correctly classified instances per class 
+rowsums = apply(cm, 1, sum) # number of instances per class
+colsums = apply(cm, 2, sum) # number of predictions per class
+p = rowsums / n # distribution of instances over the actual classes
+q = colsums / n # distribution of instances over the predicted classes
+
+precision = diag / colsums 
+
+recall = diag / rowsums 
+f1 = 2 * precision * recall / (precision + recall) 
+
+precision
+recall
+f1
+
+precision=0.7620 
+recall=  0.7901 
+f1 = 2 * precision * recall / (precision + recall) 

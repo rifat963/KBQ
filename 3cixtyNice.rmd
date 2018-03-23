@@ -1,10 +1,10 @@
 ---
-title: "Prototype implementation on 3cixty Nice KB"
-author: "Rifat"
-date: "Tuesday, October 25, 2016"
+title: "Prototype implementation for 3cixty Nice KB"
+author: "Rifat Ahmmad Rashid"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
+  word_document: default
 ---
 In this implementation we presents, 3cixty Nice 2 class quality analysis report based on four quality characteristics: (i) Persistency (ii) Historical Persistency (iii) Consistency (iv) Completeness. We divided the report based on each quality characteristics. Also we presented 3cixty Nice 2 class growth analysis measure:
 
@@ -24,7 +24,7 @@ location="~/ExperimentalData/3cixtyNice/"
 
 The dataset presented in the folder is already processed and build in a intermediate data structure for the quality assessment approach.
 
-To run the rmd file only need to specify the folder location for input data.
+To run the rmd file only need to specify the folder location as input data.
 
 ###Results Structure
 
@@ -52,15 +52,12 @@ library(ggplot2)
 library(plyr)
 library(dplyr)
 library(dtplyr)
-library(reshape2)
 library(hts)
 library('knitr')
 library(reshape2)
 
-
 #Input entity files
 # location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ/ExperimentalData/3cixtyNice/"
-# 
 
 loc<-paste(getwd(),location,sep = "")
 loc<-paste(loc,"3cixty2ClassEntityCount.csv",sep = "")
@@ -91,8 +88,6 @@ location<- "/ExperimentalData/3cixtyNice/"
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
 
 # location<- "C:/Users/rifat/Desktop/R_milan/githubRepo/KBQ2/ExperimentalData/3cixtyNice/lode-Event.csv"
-# 
-# dTproperty <- read.csv(location,header = TRUE)
 
 loc<-paste(getwd(),location,sep = "")
 loc<-paste(loc,"lode-Event.csv",sep = "")
@@ -125,6 +120,7 @@ shadeAreaPC(p,entityData)
 #### Historical Persitency
 
 ```{r,echo=FALSE,comment=NA,results='hide', message=FALSE, warning=FALSE}
+# this is for historical persistency ploting
 histPer<-histPerAllC(entityData)
 
 ```
@@ -154,7 +150,7 @@ dTproperty= ddply(dTproperty,.(Release), here(transform), NormalizedFreq=(freq/c
 
 # enEventsCor$Weight= enEvents/10000
 
-eventsCor=dTproperty[dTproperty$NormalizedFreq<1,]
+eventsCor=dTproperty[dTproperty$NormalizedFreq<=1,]
 
 Release=unique(eventsCor$Release)
 
@@ -164,6 +160,11 @@ prevDep=eventsCor[eventsCor$Release==Release[length(Release)-1],]
 
 Merge=rbind(prevDep,lastDep)
 
+ggplot(dTproperty, aes(NormalizedFreq, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10') + xlab("log10(Property Frequency)") 
+
+  # geom_vline(aes(xintercept=100),color="blue", linetype="dashed", size=.1)+ 
 ```
 ```{r,echo=FALSE}
 
@@ -195,8 +196,24 @@ DataSet=data.frame(Property=ConsistencyData$Property,'2016-09-09'=ConsistencyDat
 
 DataSet<-DataSet[complete.cases(DataSet),]
 
+
+event=rbind(lastDep,prevDep)
+
+graphEvent = event[event$NormalizedFreq<=1,]
+
+graphEventPrint=data.frame(Properties=graphEvent$Property,NormalizedFreq=graphEvent$NormalizedFreq,Releases=graphEvent$Release)
+
 ```
 
+
+```{r,echo=FALSE}
+
+ggplot(data=graphEventPrint, aes(x=Properties, y=NormalizedFreq , group=Releases,color=Releases)) +
+           geom_line() +
+           geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))+ xlab("Properties") +
+           ylab("Normalized Frequency")+coord_flip()
+
+```
 No. of incomplete properties= `r nrow(DataSet)`. Percentage of completeness=`r (1-nrow(DataSet)/nrow(Merge))*100` % 
 
 List of Incomplete properties list:
@@ -302,9 +319,17 @@ prevDep=eventsCor[eventsCor$Release==Release[length(Release)-1],]
 
 Merge=rbind(prevDep,lastDep)
 
+ggplot(dTproperty, aes(NormalizedFreq, fill = Release, colour = Release)) +
+  geom_density(alpha = 0.1) +
+  scale_x_continuous(trans='log10')+ xlab("log10(Property Frequency)") 
+  # geom_vline(aes(xintercept=0.2),color="blue", linetype="dashed", size=.1)
+ 
+
 ```
 
 ```{r,echo=FALSE}
+
+
 
 kable(Merge, format = "markdown")
 
@@ -334,6 +359,22 @@ DataSet=data.frame(Property=ConsistencyData$Property,'2016-09-09'=ConsistencyDat
 
 DataSet<-DataSet[complete.cases(DataSet),]
 
+places=rbind(lastDep,prevDep)
+
+graphPlaces = places[places$NormalizedFreq<=1,]
+
+graphPlacesPrint=data.frame(Properties=graphPlaces$Property,NormalizedFreq=graphPlaces$NormalizedFreq,Releases=graphPlaces$Release)
+
+
+```
+
+
+```{r,echo=FALSE}
+
+ggplot(data=graphPlacesPrint, aes(x=Properties, y=NormalizedFreq , group=Releases,color=Releases)) +
+           geom_line() +
+           geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))+xlab("Properties") +
+           ylab("Normalized Frequency")+coord_flip()
 
 ```
 
